@@ -9,15 +9,22 @@
         }
 
         function connect() {
-            var socket = new SockJS('/chat');
+            const socket = new WebSocket('ws://localhost:8080/chat/websocket');
             stompClient = Stomp.over(socket);
-            stompClient.connect({}, function(frame) {
-                setConnected(true);
-                console.log('Connected: ' + frame);
-                stompClient.subscribe('/topic/messages', function(messageOutput) {
-                    showMessageOutput(JSON.parse(messageOutput.body));
-                });
-            });
+
+            stompClient.connect(
+                { username: 'test_username' },  //  STOMP Header
+                function (frame) {
+                    console.log('Connected: ' + frame);
+                    stompClient.subscribe('/topic/messages', function (messageOutput) {
+                        const message = JSON.parse(messageOutput.body);
+                        console.log("New message:", message);
+                    });
+                },
+                function (error) {
+                    console.error('Connection error:', error);
+                }
+            );
         }
 
         function disconnect() {
