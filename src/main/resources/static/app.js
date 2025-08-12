@@ -9,16 +9,18 @@
         }
 
         function connect() {
-            const socket = new WebSocket('ws://localhost:8080/chat/websocket');
-            stompClient = Stomp.over(socket);
+                const socket = new SockJS('http://localhost:8080/chat');
+                stompClient = Stomp.over(socket);
 
             stompClient.connect(
                 { username: 'test_username' },  //  STOMP Header
                 function (frame) {
                     console.log('Connected: ' + frame);
+                    setConnected(true);
                     stompClient.subscribe('/topic/messages', function (messageOutput) {
                         const message = JSON.parse(messageOutput.body);
                         console.log("New message:", message);
+                        showMessageOutput(message);
                     });
                 },
                 function (error) {
