@@ -18,10 +18,11 @@ public class DefaultQuestionService implements QuestionService {
     public void saveQuestion(Question question) {
         questionRepo.save(question);
     }
-
     @Override
     public List<Question> getQuestions() {
         return questionRepo.findAll();
     }
-
+    public Question getQuestion(Integer id) {
+        return questionRepo.findById(id).orElse(null);
+    }
 }

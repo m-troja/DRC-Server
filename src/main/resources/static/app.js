@@ -11,9 +11,12 @@
         function connect() {
                 const socket = new SockJS('http://localhost:8080/chat');
                 stompClient = Stomp.over(socket);
+                const from = document.getElementById('from').value; // pobierz wartość z pola `from`
 
             stompClient.connect(
-                { username: 'test_username' },  //  STOMP Header
+                { username: from,
+                role: 'ROLE_USER'
+                 },  //  STOMP Header
                 function (frame) {
                     console.log('Connected: ' + frame);
                     setConnected(true);

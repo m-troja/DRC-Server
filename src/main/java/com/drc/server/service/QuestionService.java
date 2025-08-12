@@ -10,4 +10,6 @@ public interface QuestionService {
 
     List<Question> getQuestions();
 
+    Question getQuestion(Integer id);
+
 }
