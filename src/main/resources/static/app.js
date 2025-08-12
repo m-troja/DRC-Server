@@ -17,10 +17,11 @@
                 function (frame) {
                     console.log('Connected: ' + frame);
                     setConnected(true);
-                    stompClient.subscribe('/topic/messages', function (messageOutput) {
+                    stompClient.subscribe('/client/messages', function (messageOutput) {
                         const message = JSON.parse(messageOutput.body);
-                        console.log("New message:", message);
                         showMessageOutput(message);
+
+                        console.log("Received message:", message);
                     });
                 },
                 function (error) {
@@ -40,7 +41,7 @@
         function sendMessage() {
             var from = document.getElementById('from').value;
             var text = document.getElementById('text').value;
-            stompClient.send("/app/chat", {},
+            stompClient.send("/server/chat", {},
               JSON.stringify({'from':from, 'text':text}));
         }
 

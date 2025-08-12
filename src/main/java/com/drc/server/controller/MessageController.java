@@ -17,19 +17,21 @@ import java.util.Date;
 @Controller
 public class MessageController {
 
-    QuestionService questionService;
+    private QuestionService questionService;
 
     @MessageMapping("/chat")
-    @SendTo("/topic/messages") //returns JSON
+    @SendTo("/client/messages") //returns JSON
     public OutputMessage send(Message message) {
 
+        OutputMessage outputMessage ;
+
         if ( message.getText().equals("q")) {
-            log.debug("Message to {} : {} " , message.getFrom() , questionService.getQuestions().toString() );
-            return new OutputMessage(message.getFrom(), questionService.getQuestions().toString());
+            outputMessage = new OutputMessage(message.getFrom(), questionService.getQuestions().toString());
         }
 
-        log.debug("Message from {} : {} " , message.getFrom(), message.getText() );
+        outputMessage = new OutputMessage(message.getFrom(), message.getText());
+        log.debug("Message to {} : {} " , message.getFrom(), message.getText() );
 
-        return new OutputMessage(message.getFrom(), message.getText());
+        return outputMessage;
     }
 }

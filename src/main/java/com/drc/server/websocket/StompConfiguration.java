@@ -15,8 +15,8 @@ public class StompConfiguration implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
-        config.setApplicationDestinationPrefixes("/app");
+        config.enableSimpleBroker("/client");
+        config.setApplicationDestinationPrefixes("/server");
     }
 
     @Override
