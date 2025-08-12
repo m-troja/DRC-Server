@@ -13,7 +13,9 @@
                 stompClient = Stomp.over(socket);
 
             stompClient.connect(
-                { username: 'test_username' },  //  STOMP Header
+                { username: 'test_username',
+                role: 'ROLE_USER'
+                 },  //  STOMP Header
                 function (frame) {
                     console.log('Connected: ' + frame);
                     setConnected(true);

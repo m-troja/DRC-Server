@@ -9,9 +9,7 @@ import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -20,7 +18,7 @@ public class Answer {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	int id ;
+    Integer id;
 
 	private String text;
 
@@ -29,6 +27,7 @@ public class Answer {
 	private Question question;
 
 	String jsessionid;
+
 	@Override
 	public String toString() {
 		return "Answer [id=" + id + ", text=" + text + "]";

@@ -2,19 +2,17 @@ package com.drc.server.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Entity
-@NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class Question {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     private String text;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -23,5 +21,10 @@ public class Question {
     @Override
     public String toString() {
         return "Question [id=" + id + ", text=" + text + "]";
+    }
+
+    public Question(Integer id, String text) {
+        this.id = id;
+        this.text = text;
     }
 }

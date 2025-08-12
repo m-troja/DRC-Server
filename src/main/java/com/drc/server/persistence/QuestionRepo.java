@@ -10,7 +10,7 @@ import java.util.List;
 public interface QuestionRepo extends CrudRepository<Question, Integer> {
 
     @Override
-    List<Question> findAll();
+    public List<Question> findAll();
 
 }
 
