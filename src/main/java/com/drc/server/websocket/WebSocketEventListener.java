@@ -1,27 +1,28 @@
 package com.drc.server.websocket;
 
+import com.drc.server.entity.ErrorMessage;
 import com.drc.server.entity.User;
 import com.drc.server.service.RoleService;
 import com.drc.server.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import java.time.Instant;
+
+@RequiredArgsConstructor
 @Slf4j
 @Component
 public class WebSocketEventListener {
     private final WebSocketSessionRegistry sessionRegistry;
     private final RoleService roleService;
     private final UserService userService;
-
-    public WebSocketEventListener(WebSocketSessionRegistry sessionRegistry, RoleService roleService, UserService userService) {
-        this.sessionRegistry = sessionRegistry;
-        this.roleService = roleService;
-        this.userService = userService;
-    }
+    private final SimpMessagingTemplate messagingTemplate;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
@@ -29,7 +30,7 @@ public class WebSocketEventListener {
         String sessionId = headerAccessor.getSessionId();
         String username = headerAccessor.getFirstNativeHeader("username");
         String roleStr = headerAccessor.getFirstNativeHeader("role");
-        log.debug("session connected: sessionId: {} username: {} roleStr: {}", sessionId,username, roleStr );
+        log.debug("Session connected: sessionId: {} username: {} roleStr: {}", sessionId,username, roleStr );
 
         if (username != null && roleStr != null) {
             try
@@ -48,7 +49,9 @@ public class WebSocketEventListener {
                     log.debug("Registered: sessionId={}, username={}, roleStr={}", sessionId, username, roleStr);
                 }
                 else {
-                    throw new RuntimeException("Failed to save user " + username);
+                    ErrorMessage error = new ErrorMessage("REGISTRATION_ERROR", "Username or session already exists or role invalid", sessionId, username, Instant.now().toString());
+                    messagingTemplate.convertAndSend("/client/error/" + error);
+                    log.debug("Failed to register user!", error);
                 }
 
             }

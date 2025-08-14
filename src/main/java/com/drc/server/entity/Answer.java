@@ -18,15 +18,13 @@ public class Answer {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer id;
+    private Integer id;
 
 	private String text;
 
     @ManyToOne
 	@JoinColumn(name = "question_id")
 	private Question question;
-
-	String jsessionid;
 
 	@Override
 	public String toString() {

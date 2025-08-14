@@ -27,6 +27,8 @@ public class MessageController {
 
         if ( message.getText().equals("q")) {
             outputMessage = new OutputMessage(message.getFrom(), questionService.getQuestions().toString());
+            return outputMessage;
+
         }
 
         outputMessage = new OutputMessage(message.getFrom(), message.getText());
@@ -35,10 +37,6 @@ public class MessageController {
         return outputMessage;
     }
 
-    /*
-    Listening for QuestionRequest: Integer id, boolean withAnswers.
-    Answering question with/without answers to /client/question: Integer id, String QuestionText, List<Answer> (Integer, String)
-     */
     @MessageMapping("/question/")
     @SendTo("/client/question") //returns JSON
     public Question sendQuestion(QuestionRequest qr) {
