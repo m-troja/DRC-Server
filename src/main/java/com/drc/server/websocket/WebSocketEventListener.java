@@ -36,11 +36,12 @@ public class WebSocketEventListener {
         String sessionId = headerAccessor.getSessionId();
         String username = headerAccessor.getFirstNativeHeader("username");
         String roleStr = headerAccessor.getFirstNativeHeader("role");
-        log.debug("sessionId {} username {} roleStr {}", sessionId,username, roleStr );
+        log.debug("sessionId: {} username: {} roleStr: {}", sessionId,username, roleStr );
         if (username != null && roleStr != null) {
             try
             {
                 User user = new User(
+                        sessionId,
                         username,
                         0.0,
                         roleService.getRoleByName(roleStr) // enum Role
@@ -68,6 +69,10 @@ public class WebSocketEventListener {
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        log.debug("Client disconnected. Session ID: {}", headerAccessor.getSessionId());
+        User user = userService.getUserBySesssionid(headerAccessor.getSessionId());
+        log.debug("Client disconnected. Session ID: {}, User: {}", headerAccessor.getSessionId(), user);
+        sessionRegistry.unregister(event.getSessionId());
+        userService.delete(user);
+
     }
 }

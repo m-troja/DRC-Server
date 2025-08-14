@@ -5,7 +5,6 @@ import com.drc.server.persistence.UserRepo;
 import com.drc.server.service.RoleService;
 import com.drc.server.service.UserService;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +38,15 @@ public class DefaultUserService implements UserService {
         boolean isUsernameValid = false;
         boolean isRoleValid = false;
         boolean isMoneyValid = false;
+        boolean isSessionidValid = false;
+
+        if (userRepo.findBySessionid(user.getSessionid()) == null) {
+            isSessionidValid = true;
+            log.debug("SessionID for user {} OK", username);
+        }
+        else {
+            log.debug("SessionID for user {} invalid, could already exist!", username);
+        }
 
         if (userRepo.findByName(username) == null) {
             isUsernameValid = true;
@@ -64,13 +72,29 @@ public class DefaultUserService implements UserService {
             log.debug("Money of user {} is invalid!", username);
         }
 
-        if (isUsernameValid && isRoleValid && isMoneyValid) {
-            log.debug("User {} validated!", username);
+        if ( isSessionidValid && isUsernameValid && isRoleValid && isMoneyValid) {
+            log.debug("Validation of user {} OK", username);
             return true;
         }
         else {
-            log.debug("User {} rejected!", username);
+            log.debug("Validation of user {} failed", username);
             return false;
         }
     }
+
+    public void delete(User user) {
+        try {
+            log.debug("Trying to delete user {}", user);
+            userRepo.delete(user);
+            log.debug("User {} deleted", user);
+        }
+        catch (Exception e) {
+            log.debug("Error deleting user {}: {}", user, e);
+        }
+    }
+
+    public User getUserBySesssionid(String sessionid) {
+        return userRepo.findBySessionid(sessionid);
+    }
+
 }

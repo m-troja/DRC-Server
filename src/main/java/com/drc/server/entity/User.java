@@ -3,7 +3,6 @@ package com.drc.server.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 @AllArgsConstructor
@@ -16,13 +15,15 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
+    private String sessionid;
     private Double money;
 
     @ManyToOne
-    @JoinColumn(name = "role_name", referencedColumnName = "name")
+    @JoinColumn(name = "role_id", referencedColumnName = "id")
     private Role role;
 
-    public User(String name, Double money, Role role) {
+    public User(String sessionid, String name, Double money, Role role) {
+        this.sessionid = sessionid;
         this.name = name;
         this.money = money;
         this.role = role;
