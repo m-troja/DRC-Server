@@ -23,6 +23,7 @@ public class WebSocketEventListener {
     private final RoleService roleService;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final String ERROR_DESTINATION = "/client/messages/";
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
@@ -42,16 +43,17 @@ public class WebSocketEventListener {
                         roleService.getRoleByName(roleStr) // enum Role
                 );
 
-                boolean isUserSaved = userService.save(user);
-                if (isUserSaved)
+                String userValidationResult = userService.save(user);
+
+                if (userValidationResult.equals(UserService.VALIDATE_OK))
                 {
                     sessionRegistry.register(sessionId, user);
                     log.debug("Registered: sessionId={}, username={}, roleStr={}", sessionId, username, roleStr);
                 }
                 else {
-                    ErrorMessage error = new ErrorMessage("REGISTRATION_ERROR", "Username or session already exists or role invalid", sessionId, username, Instant.now().toString());
-                    messagingTemplate.convertAndSend("/client/error/" + error);
-                    log.debug("Failed to register user!", error);
+                    ErrorMessage error = new ErrorMessage("REGISTRATION_ERROR", userValidationResult, sessionId, username, Instant.now().toString());
+                    messagingTemplate.convertAndSend(ERROR_DESTINATION , error);
+                    log.debug("Failed to register user! Error: {}", error);
                 }
 
             }
