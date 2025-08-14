@@ -8,9 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ServerApplication {
 
-    @Autowired
-    static RoleService roleService;
-
 	public static void main(String[] args) {
 		SpringApplication.run(ServerApplication.class, args);
 	}

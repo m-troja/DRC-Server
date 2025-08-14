@@ -23,20 +23,14 @@ public class WebSocketEventListener {
         this.userService = userService;
     }
 
-    /*
-              {
-                 username: 'john',
-                 userId: '123',
-                 role: 'USER'
-            },
-             */
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String sessionId = headerAccessor.getSessionId();
         String username = headerAccessor.getFirstNativeHeader("username");
         String roleStr = headerAccessor.getFirstNativeHeader("role");
-        log.debug("sessionId: {} username: {} roleStr: {}", sessionId,username, roleStr );
+        log.debug("session connected: sessionId: {} username: {} roleStr: {}", sessionId,username, roleStr );
+
         if (username != null && roleStr != null) {
             try
             {
@@ -51,7 +45,7 @@ public class WebSocketEventListener {
                 if (isUserSaved)
                 {
                     sessionRegistry.register(sessionId, user);
-                    log.debug("Connected: sessionId={}, username={}, roleStr={}", sessionId, username, roleStr);
+                    log.debug("Registered: sessionId={}, username={}, roleStr={}", sessionId, username, roleStr);
                 }
                 else {
                     throw new RuntimeException("Failed to save user " + username);
@@ -73,6 +67,7 @@ public class WebSocketEventListener {
         log.debug("Client disconnected. Session ID: {}, User: {}", headerAccessor.getSessionId(), user);
         sessionRegistry.unregister(event.getSessionId());
         userService.delete(user);
+        log.debug("Unregistered and deleted user: {}" , user);
 
     }
 }
