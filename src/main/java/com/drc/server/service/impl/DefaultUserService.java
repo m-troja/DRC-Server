@@ -36,68 +36,44 @@ public class DefaultUserService implements UserService {
     }
 
     public String validateNewUser(User user) {
+        StringBuilder errorMessage = new StringBuilder();
         String username = user.getName();
-        String roleName = user.getRole().getName();
-        Double money = user.getMoney();
-        boolean isUsernameValid = false;
-        boolean isRoleValid = false;
-        boolean isMoneyValid = false;
-        boolean isSessionidValid = false;
 
-        if (userRepo.findBySessionid(user.getSessionid()) == null) {
-            log.debug("SessionID for user {} OK", username);
-            isSessionidValid = true;
-        }
-        else {
+        if (userRepo.findBySessionid(user.getSessionid()) != null) {
             log.debug("SessionID for user {} invalid, could already exist!", username);
+            errorMessage.append("Invalid session. ");
+        } else {
+            log.debug("SessionID for user {} OK", username);
         }
 
-        if (userRepo.findByName(username) == null) {
-            log.debug("Username {} OK", username);
-            isUsernameValid = true;
-        }
-        else {
+        if (userRepo.findByName(username) != null) {
             log.debug("Username {} invalid, could already exist!", username);
+            errorMessage.append("Invalid username. ");
+        } else {
+            log.debug("Username {} OK", username);
         }
 
-        if (user.getRole().getName().equals(RoleService.ROLE_USER)) {
-            log.debug("Role of user {} OK", username);
-            isRoleValid = true;
-        }
-        else {
+        if (!RoleService.ROLE_USER.equals(user.getRole().getName())) {
             log.debug("Role of user {} is invalid!", username);
+            errorMessage.append("Invalid role. ");
+        } else {
+            log.debug("Role of user {} OK", username);
         }
 
-        if (user.getMoney() == 0) {
-            log.debug("Money of user {} OK", username);
-            isMoneyValid = true;
-        }
-        else {
+        if (user.getMoney() != 0) {
             log.debug("Money of user {} is invalid!", username);
+            errorMessage.append("Invalid money. ");
+        } else {
+            log.debug("Money of user {} OK", username);
         }
 
-        StringBuilder errorMessage = new StringBuilder("");
-        if (!isSessionidValid) {
-            errorMessage.append("Invalid session");
-        }
-        if (!isUsernameValid) {
-            errorMessage.append("Invalid username");
-        }
-        if (!isMoneyValid) {
-            errorMessage.append("Invalid role");
-        }
-        if (!isRoleValid) {
-            errorMessage.append("Invalid money");
-        }
-
-        if ( isSessionidValid && isUsernameValid && isRoleValid && isMoneyValid) {
+        if (errorMessage.length() == 0) {
             log.debug("Validation of user {} OK", username);
             return UserService.VALIDATE_OK;
-        }
-        else {
+        } else {
             log.debug("Validation of user {} failed", username);
-            log.debug("Sending error message {}", errorMessage);
-            return errorMessage.toString();
+            log.debug("Sending error message: {}", errorMessage);
+            return errorMessage.toString().trim();
         }
     }
 
