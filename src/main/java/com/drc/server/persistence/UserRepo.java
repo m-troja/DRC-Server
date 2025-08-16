@@ -10,5 +10,6 @@ public interface UserRepo extends CrudRepository<User, Integer> {
     public User findByName(String name);
     public User findByhttpSessionId(String httpSessionId);
     public User findBystompSessionId(String stompSessionId);
+    public User findByname(String name);
 }
 

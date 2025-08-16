@@ -1,7 +1,5 @@
 package com.drc.server.websocket;
 
-import com.drc.server.entity.ErrorMessage;
-import com.drc.server.entity.ErrorMessageType;
 import com.drc.server.entity.User;
 import com.drc.server.service.RoleService;
 import com.drc.server.service.UserService;
@@ -10,12 +8,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -24,65 +26,80 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
     private final UserService userService;
     private final RoleService roleService;
     private final WebSocketSessionRegistry sessionRegistry;
-    private String ERROR_DESTINATION = "/client/error";
-    private String ROLE_ADMIN_VALUE = "admin";
-    public static String httpSessionIdParamName = "HTTP_SESSION_ID";
-    private User user;
+
+    private static final String ERROR_DESTINATION = "/client/error";
+    private static final String ROLE_ADMIN_VALUE = "admin";
+    public static final String HTTP_SESSION_ID_PARAM_NAME = "HTTP_SESSION_ID";
+
+    // Mapa do blokowania handshake (np. na 5 sekund)
+    private final Map<String, Long> blockedSessions = new ConcurrentHashMap<>();
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
         ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
         String username = servletRequest.getServletRequest().getParameter("username");
-        String httpSessionId =  servletRequest.getServletRequest().getSession().getId();
+        String httpSessionId = servletRequest.getServletRequest().getSession().getId();
         String role = servletRequest.getServletRequest().getParameter("role");
-        attributes.put(httpSessionIdParamName, httpSessionId);
+        attributes.put(HTTP_SESSION_ID_PARAM_NAME, httpSessionId);
 
         log.debug("Handshake started, username: {}, role: {}, httpSessionId: {}", username, role, httpSessionId);
         log.debug("Handshake attributes before return: {}", attributes);
 
-        if (username != null && httpSessionId != null)
-        {
-            if ( role.equals(ROLE_ADMIN_VALUE)) {
+        // Sprawdzamy czy sesja jest zablokowana na 5 sekund
+        Long blockedUntil = blockedSessions.get(httpSessionId);
+        long now = System.currentTimeMillis();
+
+        if (blockedUntil != null && blockedUntil > now) {
+            log.debug("Handshake blocked for session {} until {}", httpSessionId, blockedUntil);
+            setHttpStatus(response, HttpServletResponse.SC_FORBIDDEN);
+            return false;
+        } else {
+            blockedSessions.remove(httpSessionId);
+        }
+
+        if (username != null && httpSessionId != null && role != null) {
+            User user;
+            if (role.equalsIgnoreCase(ROLE_ADMIN_VALUE)) {
                 log.debug("Role=admin detected!");
                 user = new User(httpSessionId, username, 0.0, roleService.getRoleByName(RoleService.ROLE_ADMIN));
-            }
-            else {
+            } else {
                 log.debug("Role=user");
                 user = new User(httpSessionId, username, 0.0, roleService.getRoleByName(RoleService.ROLE_USER));
             }
 
-            try
-            {
+            try {
                 String userValidationResult = userService.save(user);
-
-                if (userValidationResult.equals(UserService.VALIDATE_OK))
-                {
+                if (UserService.VALIDATE_OK.equals(userValidationResult)) {
                     sessionRegistry.register(httpSessionId, user);
                     log.debug("Registered: httpSessionId={}, username={}", httpSessionId, username);
                     return true;
-                }
-                else {
-                    ErrorMessage error = new ErrorMessage( ErrorMessageType.REGISTRATION_FAILED, userValidationResult + ", httpSessionId: " + httpSessionId + ", username: " + username, Instant.now().toString());
-//                    messagingTemplate.convertAndSend(ERROR_DESTINATION , error);
-                    log.debug("Failed to register user! Error: {}", error);
+                } else {
+                    log.debug("Failed to register user! Error: {}", userValidationResult);
+                    blockedSessions.put(httpSessionId, now + 5000);
+                    setHttpStatus(response, HttpServletResponse.SC_CONFLICT);
                     return false;
-
                 }
-
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 log.debug("Invalid user header values: {}", e.getMessage());
+                blockedSessions.put(httpSessionId, now + 5000);
+                setHttpStatus(response, HttpServletResponse.SC_FORBIDDEN);
+                return false;
             }
         } else {
             log.debug("Missing user headers in WebSocket connect for session {}", httpSessionId);
+            setHttpStatus(response, HttpServletResponse.SC_BAD_REQUEST);
+            return false;
         }
-        return false;
-
     }
 
     @Override
     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
+    }
 
-        log.debug("afterHandshake request: {}, response: {}", request, response);
+    private void setHttpStatus(ServerHttpResponse response, int statusCode) {
+        if (response instanceof ServletServerHttpResponse) {
+            HttpServletResponse servletResponse = ((ServletServerHttpResponse) response).getServletResponse();
+            servletResponse.setStatus(statusCode);
+        }
     }
 }

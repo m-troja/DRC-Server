@@ -20,7 +20,7 @@ public class WebSocketEventListener {
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        String sessionId =  (String) headerAccessor.getSessionAttributes().get(WebSocketHandshakeInterceptor.httpSessionIdParamName);
+        String sessionId =  (String) headerAccessor.getSessionAttributes().get(WebSocketHandshakeInterceptor.HTTP_SESSION_ID_PARAM_NAME);
         String username = userService.getUserByHttpSesssionid(sessionId).getName();
         log.debug("SessionConnectEvent: sessionId: {} username: {}", sessionId, username);
         log.debug("SessionConnectEvent attributes: {}", headerAccessor.getSessionAttributes());
