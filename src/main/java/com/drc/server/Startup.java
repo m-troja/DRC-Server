@@ -5,6 +5,9 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+/*
+ * Class needed to load fixed Roles into db, as soon as App is started.
+ */
 @Component
 public class Startup {
 
