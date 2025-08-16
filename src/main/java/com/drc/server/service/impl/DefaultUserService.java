@@ -60,6 +60,12 @@ public class DefaultUserService implements UserService {
             log.debug("Money of user {} OK", username);
         }
 
+        if ( user.getRole().getName().equals(RoleService.ROLE_CHEATER)) {
+            log.debug("Role of user {} is cheater! NOK", username);
+        }  else {
+            log.debug("Role of user {} OK -> {}", username, user.getRole().getName() );
+         }
+
         if (errorMessage.isEmpty()) {
             log.debug("Validation of user {} OK", username);
             return UserService.VALIDATE_OK;
