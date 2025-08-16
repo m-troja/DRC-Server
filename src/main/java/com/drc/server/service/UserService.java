@@ -10,5 +10,6 @@ public interface UserService {
     String validateNewUser(User user);
     void delete(User user);
     User getUserByHttpSesssionid(String httpSessionid);
-    User getByStompSessionId(String stompSessionId);
+    User getByStompSessionId(String stompSesssionid);
+    User getUserByname(String name);
 }

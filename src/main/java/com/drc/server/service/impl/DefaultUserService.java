@@ -94,4 +94,9 @@ public class DefaultUserService implements UserService {
         return userRepo.findBystompSessionId(stompSessionId);
     }
 
+    public User getUserByname(String name) {
+        return userRepo.findByname(name);
+    }
+
+
 }
