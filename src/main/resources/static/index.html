@@ -10,6 +10,11 @@
     <div>
         <input type="text" id="from" placeholder="Choose a nickname"/>
     </div>
+    <div>
+        <label><input type="radio" name="role" value="user" checked /> User</label>
+        <label><input type="radio" name="role" value="admin" /> Admin</label>
+        <label><input type="radio" name="role" value="cheater" /> Cheater</label>
+    </div>
     <br />
     <div>
         <button id="connect" onclick="connect();">Connect</button>
@@ -32,6 +37,26 @@
         <button id="questionButton" onclick="fetchQuestion();">Fetch Question</button>
         <div id="questionResponse"></div>
     </div>
+</div>
+
+<style>
+    #pingConsole {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 300px;
+        height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        background-color: #f7f7f7;
+        font-family: monospace;
+        font-size: 12px;
+    }
+</style>
+<div id="pingConsole">
+    <strong>Pings log:</strong>
+    <div id="pingLog"></div>
 </div>
 
 </body>

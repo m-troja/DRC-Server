@@ -8,5 +8,7 @@ import org.springframework.stereotype.Repository;
 public interface UserRepo extends CrudRepository<User, Integer> {
 
     public User findByName(String name);
-    public User findBySessionid(String sessionid);
+    public User findByhttpSessionId(String httpSessionId);
+    public User findBystompSessionId(String stompSessionId);
 }
+

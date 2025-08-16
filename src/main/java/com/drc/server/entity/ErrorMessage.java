@@ -1,7 +1,5 @@
 package com.drc.server.entity;
 
-public record ErrorMessage(String type, String message,
-                           String sessionid, String username,
-                           String timestamp)
+public record ErrorMessage(ErrorMessageType type, String message, String timestamp)
 {
 }

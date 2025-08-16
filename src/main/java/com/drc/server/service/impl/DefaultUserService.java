@@ -39,7 +39,7 @@ public class DefaultUserService implements UserService {
         StringBuilder errorMessage = new StringBuilder();
         String username = user.getName();
 
-        if (userRepo.findBySessionid(user.getSessionid()) != null) {
+        if (userRepo.findByhttpSessionId(user.getHttpSessionId()) != null) {
             log.debug("SessionID for user {} invalid, could already exist!", username);
             errorMessage.append("Invalid session. ");
         } else {
@@ -53,13 +53,6 @@ public class DefaultUserService implements UserService {
             log.debug("Username {} OK", username);
         }
 
-        if (!RoleService.ROLE_USER.equals(user.getRole().getName())) {
-            log.debug("Role of user {} is invalid!", username);
-            errorMessage.append("Invalid role. ");
-        } else {
-            log.debug("Role of user {} OK", username);
-        }
-
         if (user.getMoney() != 0) {
             log.debug("Money of user {} is invalid!", username);
             errorMessage.append("Invalid money. ");
@@ -67,7 +60,7 @@ public class DefaultUserService implements UserService {
             log.debug("Money of user {} OK", username);
         }
 
-        if (errorMessage.length() == 0) {
+        if (errorMessage.isEmpty()) {
             log.debug("Validation of user {} OK", username);
             return UserService.VALIDATE_OK;
         } else {
@@ -88,7 +81,17 @@ public class DefaultUserService implements UserService {
         }
     }
 
-    public User getUserBySesssionid(String sessionid) {
-        return userRepo.findBySessionid(sessionid);
+    public User getUserByHttpSesssionid(String httpSessionid) {
+        return userRepo.findByhttpSessionId(httpSessionid);
     }
+
+    @Override
+    public void update(User user) {
+        userRepo.save(user);
+    }
+
+    public User getByStompSessionId(String stompSessionId) {
+        return userRepo.findBystompSessionId(stompSessionId);
+    }
+
 }

@@ -6,7 +6,9 @@ public interface UserService {
     public final String VALIDATE_OK = "OK";
 
     String save(User user);
+    void update(User user);
     String validateNewUser(User user);
     void delete(User user);
-    User getUserBySesssionid(String sessionid);
+    User getUserByHttpSesssionid(String httpSessionid);
+    User getByStompSessionId(String stompSessionId);
 }

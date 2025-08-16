@@ -10,57 +10,95 @@
 
         }
 
-        function connect() {
-                const socket = new SockJS('http://localhost:8080/chat');
-                stompClient = Stomp.over(socket);
-                const from = document.getElementById('from').value;
+function connect() {
+    const from = document.getElementById('from').value;
+    const role = document.querySelector('input[name="role"]:checked')?.value;
 
-            stompClient.connect(
-                {   username: from,
-                    role: 'ROLE_USER'
-                 },  //  STOMP Header
+    console.log("connect() called");
+    console.log("Input username:", from);
+    console.log("Selected role:", role);
 
-                function (frame) {
-                    console.log('Connected: ' + frame);
-                    setConnected(true);
+    if (!from) {
+        alert("Username is required!");
+        console.error("connect() aborted: missing username");
+        return;
+    }
 
-                    // Subscriptions
-                    stompClient.subscribe('/client/messages', function (messageOutput) {
-                        const message = JSON.parse(messageOutput.body);
-                        showMessageOutput(message);
-                        console.log("showing output message: " + message);
-                    });
+    if (!role) {
+        alert("Role must be selected!");
+        console.error("connect() aborted: missing role");
+        return;
+    }
 
-                    stompClient.subscribe('/client/question', function (messageOutput) {
-                        const question = JSON.parse(messageOutput.body);
-                        showMessageOutput(question);
-                        console.log("showing output question: " + question);
-                    });
+    try {
+        const socket = new SockJS(`http://localhost:8080/game?username=${encodeURIComponent(from)}&role=${encodeURIComponent(role)}`);
+        stompClient = Stomp.over(socket);
 
-                    stompClient.subscribe('/client/ping', function (ping) {
-                                const pingMessage = JSON.parse(ping.body);
-                                console.log("Ping received from server: " + pingMessage);
-                                showMessageOutput(pingMessage);
+        console.log("Attempting STOMP connection...");
 
-                                console.log("Ping: " + pingMessage);
-                                 stompClient.send("/server/ping", {}, JSON.stringify({
-                                       text: "KeepAlive from client!",
-                                       date: new Date().toISOString()
-                               }));
-                    });
-                },
-                function (error) {
-                    console.error('Connection error:', error);
-                }
-            );
-        }
+        stompClient.connect({}, function(frame) {
+            console.log("STOMP connected frame:", frame);
+            if (frame && frame.headers) {
+                console.log("STOMP version: " + frame.headers.version);
+                console.log("STOMP server header:", frame.headers.server || "brak");
+            }
+
+                stompClient.subscribe('/client/messages', function (messageOutput) {
+                    console.log("Received /client/messages:", messageOutput.body);
+                    const message = JSON.parse(messageOutput.body);
+                    showMessageOutput(message);
+                });
+
+                stompClient.subscribe('/client/question', function (messageOutput) {
+                    console.log("Received /client/question:", messageOutput.body);
+                    const question = JSON.parse(messageOutput.body);
+                    showMessageOutput(question);
+                });
+
+                stompClient.subscribe('/client/ping', function (ping) {
+                    console.log("Received /client/ping:", ping.body);
+                    const pingMessage = JSON.parse(ping.body);
+                    showMessageOutput(pingMessage);
+
+                    logPing("⬅️ Ping received: " + JSON.stringify(pingMessage));
+
+                    const reply = {
+                        text: "KeepAlive from client!",
+                        date: new Date().toISOString()
+                    };
+
+                    stompClient.send("/server/ping", {}, JSON.stringify(reply));
+                    logPing("➡️ Ping sent: " + JSON.stringify(reply));
+                });
+            },
+             function (error) {
+                       console.error('STOMP connection error:', error);
+                       if (error && typeof error === 'object') {
+                           console.error('STOMP error details:', JSON.stringify(error));
+                       }
+                       alert("Connection error: Check console for details");
+                       setConnected(false);
+                   }
+        );
+    } catch (ex) {
+        console.error("Exception during STOMP connect:", ex);
+        alert("Exception during connect: " + ex.message);
+        setConnected(false);
+    }
+}
 
         function disconnect() {
-            if(stompClient != null) {
-                stompClient.disconnect();
+            if (stompClient != null) {
+                console.log("Disconnecting stompClient...");
+                stompClient.disconnect(function() {
+                    console.log("Disconnected callback called.");
+                    setConnected(false);
+                });
+            } else {
+                console.log("No stompClient to disconnect.");
+                setConnected(false);
             }
-            setConnected(false);
-            console.log("Disconnected");
+            console.log("Disconnect function finished.");
         }
 
         function sendMessage() {
@@ -95,4 +133,12 @@
             }
             ));
             console.log("Fetched question id: ", id, ", withAnswers: " + withAnswers)
+       }
+
+       function logPing(message) {
+           const pingLog = document.getElementById("pingLog");
+           const p = document.createElement("p");
+           p.textContent = message;
+           pingLog.appendChild(p);
+           pingLog.scrollTop = pingLog.scrollHeight;
        }

@@ -15,17 +15,26 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
-    private String sessionid;
+    private String httpSessionId;
+    private String stompSessionId;
     private Double money;
 
     @ManyToOne
     @JoinColumn(name = "role_id", referencedColumnName = "id")
     private Role role;
 
-    public User(String sessionid, String name, Double money, Role role) {
-        this.sessionid = sessionid;
+    public User(String httpSessionId, String name, Double money, Role role) {
+        this.httpSessionId = httpSessionId;
         this.name = name;
         this.money = money;
         this.role = role;
     }
+
+    public User(String httpSessionId, String name, Double money) {
+        this.httpSessionId = httpSessionId;
+        this.name = name;
+        this.money = money;
+    }
+
+
 }
