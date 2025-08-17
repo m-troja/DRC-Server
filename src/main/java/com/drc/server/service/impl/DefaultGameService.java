@@ -45,7 +45,7 @@ public class DefaultGameService implements GameService {
             userService.update(user);
         }
         setCheater(game);
-
+        log.debug("Start new {} ", game);
         return game;
     }
 
