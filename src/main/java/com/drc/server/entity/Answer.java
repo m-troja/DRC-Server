@@ -1,5 +1,6 @@
 package com.drc.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,15 +19,14 @@ public class Answer {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer id;
+    private Integer id;
 
 	private String text;
 
+    @JsonIgnore
     @ManyToOne
 	@JoinColumn(name = "question_id")
 	private Question question;
-
-	String jsessionid;
 
 	@Override
 	public String toString() {

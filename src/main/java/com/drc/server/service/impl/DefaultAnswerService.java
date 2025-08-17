@@ -12,7 +12,7 @@ public class DefaultAnswerService implements AnswerService {
 
     private final AnswerRepo answerRepo;
 
-    public List<Answer> getAnswersForQuestion(Integer questionId) {
+    public List<Answer> getAnswersForQuestionId(Integer questionId) {
         return answerRepo.findAllByQuestionId(questionId);
     }
 

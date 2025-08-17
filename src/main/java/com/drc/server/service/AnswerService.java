@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface AnswerService {
 
-    List<Answer> getAnswersForQuestion(Integer questionId);
+    List<Answer> getAnswersForQuestionId(Integer questionId);
 }

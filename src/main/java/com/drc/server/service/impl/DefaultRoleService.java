@@ -11,7 +11,11 @@ public class DefaultRoleService implements RoleService {
     private final RoleRepo roleRepo;
 
     public Role getRoleByName(String roleName) {
-        return roleRepo.findByName(roleName);
+        Role role = roleRepo.findByName(roleName);
+        if (role == null) {
+            throw new RuntimeException("Error: Role " + roleName + " was not found!");
+        }
+        return role;
     }
 
     public DefaultRoleService(RoleRepo roleRepo) {

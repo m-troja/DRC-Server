@@ -1,7 +1,11 @@
 package com.drc.server.service;
 
+import com.drc.server.entity.Game;
+
 public interface GameService {
-
-    void start();
-
+    Game startNewGame();
+    void setCheater(Game game);
+    void sendQuestionToAllClients(Game game);
+    void save(Game game);
+    void sendAnswers(Game game);
 }
