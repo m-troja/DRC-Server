@@ -1,5 +1,6 @@
 package com.drc.server.service;
 
+import com.drc.server.entity.BalanceAction;
 import com.drc.server.entity.Game;
 import com.drc.server.entity.Role;
 import com.drc.server.entity.User;
@@ -22,4 +23,5 @@ public interface UserService {
     List<User> getUsersWithNoGame();
     List<User> getUsersByRoleAndGame(Role role, Game game);
     List<User> getUsersByGame(Game game);
+    Double updateBalance(BalanceAction action, String username, String value );
 }

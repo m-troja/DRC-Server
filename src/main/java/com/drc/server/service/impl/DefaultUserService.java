@@ -1,5 +1,6 @@
 package com.drc.server.service.impl;
 
+import com.drc.server.entity.BalanceAction;
 import com.drc.server.entity.Game;
 import com.drc.server.entity.Role;
 import com.drc.server.entity.User;
@@ -9,6 +10,7 @@ import com.drc.server.service.RoleService;
 import com.drc.server.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,15 +28,13 @@ public class DefaultUserService implements UserService {
         if (userValidationResult.equals(UserService.VALIDATE_OK)) {
             try {
                 userRepo.save(user);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 log.debug("Error saving user {}:{}", user.getId(), user.getName());
                 return "Error saving user " + user.getId();
             }
             log.debug("Saved user {}:{}", user.getId(), user.getName());
             return UserService.VALIDATE_OK;
-        }
-        else {
+        } else {
             log.debug("Save user: error saving user: {}, error: {}", user, userValidationResult);
             return userValidationResult;
         }
@@ -65,11 +65,11 @@ public class DefaultUserService implements UserService {
             log.debug("Money of user {} OK", username);
         }
 
-        if ( user.getRole().getName().equals(RoleService.ROLE_CHEATER)) {
+        if (user.getRole().getName().equals(RoleService.ROLE_CHEATER)) {
             log.debug("Role of user {} is cheater! NOK", username);
-        }  else {
-            log.debug("Role of user {} OK -> {}", username, user.getRole().getName() );
-         }
+        } else {
+            log.debug("Role of user {} OK -> {}", username, user.getRole().getName());
+        }
 
         if (errorMessage.isEmpty()) {
             log.debug("Validation of user {} OK", username);
@@ -86,8 +86,7 @@ public class DefaultUserService implements UserService {
             log.debug("Trying to delete user {}", user);
             userRepo.delete(user);
             log.debug("User {} deleted", user);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.debug("Error deleting user {}: {}", user, e.toString());
         }
     }
@@ -118,7 +117,7 @@ public class DefaultUserService implements UserService {
     public void setCheater(String username) {
         User user = getUserByname(username);
         user.setRole(roleService.getRoleByName(RoleService.ROLE_CHEATER));
-        log.debug("Set cheater {} " , user);
+        log.debug("Set cheater {} ", user);
     }
 
     public List<User> getUsersByRole(Role role) {
@@ -126,8 +125,9 @@ public class DefaultUserService implements UserService {
         log.debug("Found {} by {} ", users, role);
         return users;
     }
+
     public List<User> getUsersWithNoGame() {
-        List<User> users =userRepo.findByGameIsNull();
+        List<User> users = userRepo.findByGameIsNull();
         log.debug("Found users where game is null: {} ", users);
         return users;
     }
@@ -138,8 +138,34 @@ public class DefaultUserService implements UserService {
 
     public List<User> getUsersByGame(Game game) {
         List<User> users = userRepo.findByGame(game);
-        log.debug("Find users by {} : {} " , game, users);
+        log.debug("Find users by {} : {} ", game, users);
         return users;
+
+    }
+
+    public Double updateBalance(BalanceAction actionRequest, String username, String value) {
+
+        Double valueDouble = Double.valueOf(value);
+
+        User user = getUserByname(username);
+        Double userMoney = user.getMoney();
+
+        if (actionRequest.equals(BalanceAction.INCREASE)) {
+            userMoney += valueDouble;
+            log.debug("Money of {} was increased by {} ", user, valueDouble);
+        } else if (actionRequest.equals(BalanceAction.DECREASE)) {
+            userMoney -= valueDouble;
+            log.debug("Money of {} was decreased by {} ", user, valueDouble);
+        } else if (actionRequest.equals(BalanceAction.SET)) {
+            userMoney = valueDouble;
+            log.debug("Money of {} was set to {} ", user, valueDouble);
+        } else if (actionRequest.equals(BalanceAction.DIVIDE)) {
+            userMoney = userMoney / valueDouble;
+            log.debug("Money of {} was divided by {} ", user, valueDouble);
+        }
+        user.setMoney(userMoney);
+        update(user);
+        return userMoney;
 
     }
 }
