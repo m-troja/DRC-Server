@@ -4,5 +4,6 @@ public enum BalanceAction {
 
     DECREASE,
     INCREASE,
-    SET
+    SET,
+    DIVIDE
 }

@@ -23,6 +23,10 @@ public class User {
     @JoinColumn(name = "role_id", referencedColumnName = "id")
     private Role role;
 
+    @ManyToOne
+    @JoinColumn(name = "game_id", referencedColumnName = "id")
+    private Game game;
+
     public User(String httpSessionId, String name, Double money, Role role) {
         this.httpSessionId = httpSessionId;
         this.name = name;

@@ -20,6 +20,6 @@ public class Pinger {
     public void sendPing() {
         PingMessage pingMessage = new PingMessage(PING_MESSAGE, Instant.now().toString());
         messagingTemplate.convertAndSend("/client/ping", pingMessage);
-        log.debug("Sent ping to client: {}" , pingMessage);
+//        log.debug("Sent ping to clients: {}" , pingMessage);
     }
 }

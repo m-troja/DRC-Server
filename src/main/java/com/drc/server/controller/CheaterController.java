@@ -17,7 +17,7 @@ public class CheaterController {
 
     private RoleService roleService;
     private UserService userService;
-//    private SimpleMes
+
     @MessageMapping("/cheater")
     @SendTo("/cheater")
     public HttpStatus selectCheater(String username) {

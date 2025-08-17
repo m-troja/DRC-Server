@@ -42,6 +42,9 @@ public class AccountController {
         } else if (action.equals(BalanceAction.SET)) {
             money = balanceRequest.value();
             log.debug("Money of {} was set to {} ", user, balanceRequest.value() );
+        } else if (action.equals(BalanceAction.DIVIDE)) {
+            money = balanceRequest.value();
+            log.debug("Money of {} was divided by {} ", user, balanceRequest.value() );
         }
 
         return HttpStatus.OK;

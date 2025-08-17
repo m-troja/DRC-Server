@@ -1,5 +1,7 @@
 package com.drc.server.service.impl;
 
+import com.drc.server.entity.Game;
+import com.drc.server.entity.Role;
 import com.drc.server.entity.User;
 import com.drc.server.persistence.UserRepo;
 import com.drc.server.service.RoleService;
@@ -7,6 +9,8 @@ import com.drc.server.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @AllArgsConstructor
 @Slf4j
@@ -83,7 +87,7 @@ public class DefaultUserService implements UserService {
             log.debug("User {} deleted", user);
         }
         catch (Exception e) {
-            log.debug("Error deleting user {}: {}", user, e);
+            log.debug("Error deleting user {}: {}", user, e.toString());
         }
     }
 
@@ -104,5 +108,28 @@ public class DefaultUserService implements UserService {
         return userRepo.findByname(name);
     }
 
+    public List<User> getUsers() {
+        return userRepo.findAll();
+    }
 
+    public void setCheater(String username) {
+        User user = getUserByname(username);
+        user.setRole(roleService.getRoleByName(RoleService.ROLE_CHEATER));
+        log.debug("Set cheater {} " , user);
+    }
+
+    public List<User> getUsersByRole(Role role) {
+        List<User> users = userRepo.findByRole(role);
+        log.debug("Found {} by {} ", users, role);
+        return users;
+    }
+    public List<User> getUsersWithNoGame() {
+        List<User> users =userRepo.findByGameIsNull();
+        log.debug("Found users where game is null: {} ", users);
+        return users;
+    }
+
+    public List<User> getUsersByRoleAndGame(Role role, Game game) {
+        return userRepo.findByRoleAndGame(role, game);
+    }
 }
