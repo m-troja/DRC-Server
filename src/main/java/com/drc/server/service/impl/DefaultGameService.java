@@ -96,8 +96,14 @@ public class DefaultGameService implements GameService {
         }
     }
 
-    public DefaultGameService(UserService userService, RoleService roleService, AnswerService answerService, QuestionService questionService, SimpMessagingTemplate messagingTemplate,
-                              GameRepo gameRepo, AnswerCnv answerCnv, QuestionCnv questionCnv) {
+    public Game getGameById(Integer id) {
+        Game game = gameRepo.findById(id).orElse(null);
+        log.debug("Find game by id {} : {} ", id, game);
+        return game;
+    }
+
+    public DefaultGameService(UserService userService, RoleService roleService, AnswerService answerService, QuestionService questionService,
+                              SimpMessagingTemplate messagingTemplate, GameRepo gameRepo, AnswerCnv answerCnv, QuestionCnv questionCnv) {
         this.userService = userService;
         this.roleService = roleService;
         this.answerService = answerService;

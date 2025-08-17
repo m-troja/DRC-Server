@@ -4,6 +4,7 @@ import com.drc.server.entity.Game;
 import com.drc.server.entity.Role;
 import com.drc.server.entity.User;
 import com.drc.server.persistence.UserRepo;
+import com.drc.server.service.GameService;
 import com.drc.server.service.RoleService;
 import com.drc.server.service.UserService;
 import lombok.AllArgsConstructor;
@@ -105,7 +106,9 @@ public class DefaultUserService implements UserService {
     }
 
     public User getUserByname(String name) {
-        return userRepo.findByname(name);
+        User user = userRepo.findByname(name);
+        log.debug("Find user by name: {} : {}", name, user);
+        return user;
     }
 
     public List<User> getUsers() {
@@ -131,5 +134,12 @@ public class DefaultUserService implements UserService {
 
     public List<User> getUsersByRoleAndGame(Role role, Game game) {
         return userRepo.findByRoleAndGame(role, game);
+    }
+
+    public List<User> getUsersByGame(Game game) {
+        List<User> users = userRepo.findByGame(game);
+        log.debug("Find users by {} : {} " , game, users);
+        return users;
+
     }
 }

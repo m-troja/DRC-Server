@@ -21,4 +21,5 @@ public interface UserService {
     List<User> getUsersByRole(Role role);
     List<User> getUsersWithNoGame();
     List<User> getUsersByRoleAndGame(Role role, Game game);
+    List<User> getUsersByGame(Game game);
 }

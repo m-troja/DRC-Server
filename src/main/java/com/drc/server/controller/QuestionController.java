@@ -23,7 +23,7 @@ public class QuestionController {
     private QuestionService questionService;
 
     @MessageMapping("/question/")
-    @SendToUser("/question") //returns JSON
+    @SendToUser("/uestion") //returns JSON
     public Question sendQuestion(QuestionRequest qr) {
 
         Question question;

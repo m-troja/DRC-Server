@@ -43,9 +43,13 @@ public class AdminController {
             log.debug(SC_OK, game);
             gameService.sendQuestionToAllClients(game);
             gameService.sendAnswers(game);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body("GameId: " + game.getId());
         }
-        return ResponseEntity.status(HttpStatus.OK)
-                .body("Game started");
+        else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Command not supported");
+        }
+
     }
 
     public AdminController(GameService gameService) {

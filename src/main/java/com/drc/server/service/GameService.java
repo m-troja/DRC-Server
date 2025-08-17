@@ -8,4 +8,5 @@ public interface GameService {
     void sendQuestionToAllClients(Game game);
     void save(Game game);
     void sendAnswers(Game game);
+    Game getGameById(Integer id);
 }
