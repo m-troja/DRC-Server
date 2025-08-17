@@ -4,16 +4,9 @@ import com.drc.server.dto.AnswerDto;
 import com.drc.server.dto.QuestionDto;
 import com.drc.server.dto.cnv.AnswerCnv;
 import com.drc.server.dto.cnv.QuestionCnv;
-import com.drc.server.entity.Game;
-import com.drc.server.entity.GameStatus;
-import com.drc.server.entity.Question;
-import com.drc.server.entity.User;
+import com.drc.server.entity.*;
 import com.drc.server.persistence.GameRepo;
-import com.drc.server.service.GameService;
-import com.drc.server.service.QuestionService;
-import com.drc.server.service.RoleService;
-import com.drc.server.service.UserService;
-import lombok.AllArgsConstructor;
+import com.drc.server.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -27,12 +20,14 @@ public class DefaultGameService implements GameService {
 
     private UserService userService;
     private RoleService roleService;
+    private AnswerService answerService;
     private QuestionService questionService;
     private SimpMessagingTemplate messagingTemplate;
     private GameRepo gameRepo;
-    private String clientQuestionEndpoint = "/client/question";
     private AnswerCnv answerCnv;
     private QuestionCnv questionCnv;
+    private String clientQuestionEndpoint = "/client/question";
+    private String clientAnswerEndpoint = "/queue/answer"; // Sends message for specific user
 
     public Game startNewGame() {
         Game game = new Game();
@@ -81,18 +76,35 @@ public class DefaultGameService implements GameService {
     }
 
     public void sendAnswers(Game game) {
+        List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_ADMIN), game);
+        List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_CHEATER),game);
+        log.debug("Admins found: {}", admins);
+        log.debug("Cheaters found: {}", cheaters);
 
+        List<Answer> answers = answerService.getAnswersForQuestionId(game.getCurrentQuestionId());
+        List<AnswerDto> answerDtos = answerCnv.converAnswersToAnswerDtos(answers);
+        log.debug("answers found: {}", answers);
+        log.debug("answerDtos found: {}", answerDtos);
+
+        for (User admin : admins) {
+            messagingTemplate.convertAndSendToUser(admin.getName(), clientAnswerEndpoint, answerDtos );
+            log.debug("Sent answers to {} : {}", admin, answerDtos);
+        }
+        for (User cheater : cheaters) {
+            messagingTemplate.convertAndSendToUser(cheater.getName(), clientAnswerEndpoint, answerDtos );
+            log.debug("Sent answers to {} : {}", cheater, answerDtos);
+        }
     }
 
-    public DefaultGameService(UserService userService, RoleService roleService, QuestionService questionService,
-                              SimpMessagingTemplate messagingTemplate, GameRepo gameRepo, QuestionCnv questionCnv,
-                              AnswerCnv answerCnv) {
+    public DefaultGameService(UserService userService, RoleService roleService, AnswerService answerService, QuestionService questionService, SimpMessagingTemplate messagingTemplate,
+                              GameRepo gameRepo, AnswerCnv answerCnv, QuestionCnv questionCnv) {
         this.userService = userService;
         this.roleService = roleService;
+        this.answerService = answerService;
         this.questionService = questionService;
         this.messagingTemplate = messagingTemplate;
         this.gameRepo = gameRepo;
-        this.questionCnv = questionCnv;
         this.answerCnv = answerCnv;
+        this.questionCnv = questionCnv;
     }
 }

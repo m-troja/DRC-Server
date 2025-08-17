@@ -42,6 +42,7 @@ public class AdminController {
             }
             log.debug(SC_OK, game);
             gameService.sendQuestionToAllClients(game);
+            gameService.sendAnswers(game);
         }
         return ResponseEntity.status(HttpStatus.OK)
                 .body("Game started");

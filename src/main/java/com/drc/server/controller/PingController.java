@@ -13,6 +13,6 @@ public class PingController {
     @MessageMapping("/ping")
     @SendTo("/ping")
     public void pingListener(PingMessage pingMessage) {
-        log.debug("Received ping from client: {}" , pingMessage);
+//        log.debug("Received ping from client: {}" , pingMessage);
     }
 }

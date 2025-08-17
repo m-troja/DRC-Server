@@ -14,7 +14,6 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,22 +29,30 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
     private static final String ERROR_DESTINATION = "/client/error";
     private static final String ROLE_ADMIN_VALUE = "admin";
     public static final String HTTP_SESSION_ID_PARAM_NAME = "HTTP_SESSION_ID";
+    public static final String USERNAME_PARAM_NAME = "username";
 
-    // Mapa do blokowania handshake (np. na 5 sekund)
     private final Map<String, Long> blockedSessions = new ConcurrentHashMap<>();
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
         ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
-        String username = servletRequest.getServletRequest().getParameter("username");
+        String query = request.getURI().getQuery();
+
+        for (String param : query.split("&")) {
+            if (param.startsWith("username=")) {
+                attributes.put("username", param.split("=")[1]);
+            }
+        }
+        String username = (String) attributes.get("username");
+
         String httpSessionId = servletRequest.getServletRequest().getSession().getId();
         String role = servletRequest.getServletRequest().getParameter("role");
         attributes.put(HTTP_SESSION_ID_PARAM_NAME, httpSessionId);
+//        attributes.put(USERNAME_PARAM_NAME, username);
 
         log.debug("Handshake started, username: {}, role: {}, httpSessionId: {}", username, role, httpSessionId);
         log.debug("Handshake attributes before return: {}", attributes);
 
-        // Sprawdzamy czy sesja jest zablokowana na 5 sekund
         Long blockedUntil = blockedSessions.get(httpSessionId);
         long now = System.currentTimeMillis();
 

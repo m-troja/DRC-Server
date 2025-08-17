@@ -16,7 +16,7 @@ public class Pinger {
     private final SimpMessagingTemplate messagingTemplate;
     private final String PING_MESSAGE = "KeepAlive from server!";
 
-    @Scheduled(fixedRate = 10000) // every 10k ms = every 10 s
+//    @Scheduled(fixedRate = 10000) // every 10k ms = every 10 s
     public void sendPing() {
         PingMessage pingMessage = new PingMessage(PING_MESSAGE, Instant.now().toString());
         messagingTemplate.convertAndSend("/client/ping", pingMessage);

@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public class QuestionController {
     private QuestionService questionService;
 
     @MessageMapping("/question/")
-    @SendTo("/client/question") //returns JSON
+    @SendToUser("/question") //returns JSON
     public Question sendQuestion(QuestionRequest qr) {
 
         Question question;
@@ -31,7 +32,7 @@ public class QuestionController {
         question = questionService.getQuestion(qr.id());
 
         if (qr.withAnswers()) {
-            answers = answerService.getAnswersForQuestion(question.getId());
+            answers = answerService.getAnswersForQuestionId(question.getId());
             Question questionWithAnswers = new Question(question.getId(), question.getText(), answers);
             log.debug("Returning: {}" , questionWithAnswers);
             return questionWithAnswers;

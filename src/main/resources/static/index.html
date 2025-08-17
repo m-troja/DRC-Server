@@ -22,21 +22,9 @@
             Disconnect
         </button>
     </div>
-    <br />
-    <div id="conversationDiv">
-        <input type="text" id="text" placeholder="Write a message..."/>
-        <button id="sendMessage" onclick="sendMessage();">Send</button>
-        <div id="response"></div>
-    </div>
-    <br />
-    <div id="questionDiv">
-        <input type="number" id="questionId" placeholder="Write a questionId..."/>
-        <input type="checkbox" id="withAnswers" />
-        <label for="withAnswers">withAnswers</label>
 
-        <button id="questionButton" onclick="fetchQuestion();">Fetch Question</button>
-        <div id="questionResponse"></div>
-    </div>
+    <br />
+
 </div>
 
 <style>
@@ -58,6 +46,14 @@
     <strong>Pings log:</strong>
     <div id="pingLog"></div>
 </div>
+<div id="questionDiv">
+    <input type="number" id="questionId" placeholder="Write a questionId..."/>
+    <input type="checkbox" id="withAnswers" />
+    <label for="withAnswers">withAnswers</label>
 
+    <button id="questionButton" onclick="fetchQuestion();">Fetch Question</button>
+    <div id="questionResponse"></div>
+    <div id="answersResponse"></div>
+</div>
 </body>
 </html>

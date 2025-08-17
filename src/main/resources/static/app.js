@@ -3,28 +3,20 @@ var stompClient = null;
 function setConnected(connected) {
     document.getElementById('connect').disabled = connected;
     document.getElementById('disconnect').disabled = !connected;
-    document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
-    document.getElementById('response').innerHTML = '';
     document.getElementById('questionResponse').innerHTML = '';
+    document.getElementById('answersResponse').innerHTML = '';
 }
 
 function connect() {
     const from = document.getElementById('from').value;
     const role = document.querySelector('input[name="role"]:checked')?.value;
 
-    console.log("connect() called");
-    console.log("Input username:", from);
-    console.log("Selected role:", role);
-
     if (!from) {
         alert("Username is required!");
-        console.error("connect() aborted: missing username");
         return;
     }
-
     if (!role) {
         alert("Role must be selected!");
-        console.error("connect() aborted: missing role");
         return;
     }
 
@@ -32,33 +24,39 @@ function connect() {
         const socket = new SockJS(`http://localhost:8080/game?username=${encodeURIComponent(from)}&role=${encodeURIComponent(role)}`);
         stompClient = Stomp.over(socket);
 
-        console.log("Attempting STOMP connection...");
-
         stompClient.connect({}, function(frame) {
-            console.log("STOMP connected frame:", frame);
-            if (frame && frame.headers) {
-                setConnected(true); // Corrected this line
-                console.log("STOMP version: " + frame.headers.version);
-                console.log("STOMP server header:", frame.headers.server || "brak");
-            }
+            setConnected(true);
 
-            stompClient.subscribe('/client/messages', function (messageOutput) {
-                console.log("Received /client/messages:", messageOutput.body);
-                const message = JSON.parse(messageOutput.body);
-                showMessageOutput(message);
+//            stompClient.subscribe('/client/question', function (messageOutput) {
+//                const question = JSON.parse(messageOutput.body);
+//                showQuestion(question);
+//            });
+
+            stompClient.subscribe('/user/' + from + '/answer', function (messageOutput) {
+                const answers = JSON.parse(messageOutput.body);
+                showAnswers(answers);
             });
 
-            stompClient.subscribe('/client/question', function (messageOutput) {
-                console.log("Received /client/question:", messageOutput.body);
-                const question = JSON.parse(messageOutput.body);
-                showMessageOutput(question);
+//   Client listens to private channel - to get answers
+            stompClient.subscribe('/user/' + from + '/queue/answer', function (messageOutput) {
+                const answers = JSON.parse(messageOutput.body);
+                showAnswers(answers);
             });
 
-            stompClient.subscribe('/client/ping', function (ping) {
-                console.log("Received /client/ping:", ping.body);
+//            stompClient.subscribe('/user/test/queue/answer', function (messageOutput) {
+//                    const answers = JSON.parse(messageOutput.body);
+//                    showAnswers(answers);
+//                });
+//             stompClient.subscribe('/user/client/answer', function (messageOutput) {
+//                             const answers = JSON.parse(messageOutput.body);
+//                             showAnswers(answers);
+//                         });
+//                stompClient.subscribe('/queue/client/answer', function (messageOutput) {
+//                                const answers = JSON.parse(messageOutput.body);
+//                                showAnswers(answers);
+//                            });
+                stompClient.subscribe('/client/ping', function (ping) {
                 const pingMessage = JSON.parse(ping.body);
-                showMessageOutput(pingMessage);
-
                 logPing("⬅️ Ping received: " + JSON.stringify(pingMessage));
 
                 const reply = {
@@ -66,15 +64,12 @@ function connect() {
                     date: new Date().toISOString()
                 };
 
-                stompClient.send("/server/ping", {}, JSON.stringify(reply));
-                logPing("➡️ Ping sent: " + JSON.stringify(reply));
+//                stompClient.send("/server/ping", {}, JSON.stringify(reply));
+//                logPing("➡️ Ping sent: " + JSON.stringify(reply));
             });
 
         }, function (error) {
             console.error('STOMP connection error:', error);
-            if (error && typeof error === 'object') {
-                console.error('STOMP error details:', JSON.stringify(error));
-            }
             alert("Connection error: Check console for details");
             setConnected(false);
         });
@@ -87,16 +82,12 @@ function connect() {
 
 function disconnect() {
     if (stompClient != null) {
-        console.log("Disconnecting stompClient...");
         stompClient.disconnect(function() {
-            console.log("Disconnected callback called.");
             setConnected(false);
         });
     } else {
-        console.log("No stompClient to disconnect.");
         setConnected(false);
     }
-    console.log("Disconnect function finished.");
 }
 
 function sendMessage() {
@@ -117,6 +108,47 @@ function showMessageOutput(messageOutput) {
     response.appendChild(p);
 }
 
+function showQuestion(question) {
+    const container = document.getElementById('questionResponse');
+    container.innerHTML = "";
+
+    const h3 = document.createElement("h3");
+    h3.textContent = "Question " + question.id;
+    container.appendChild(h3);
+
+    const p = document.createElement("p");
+    p.textContent = question.text;
+    container.appendChild(p);
+
+    document.getElementById('answersResponse').innerHTML = "";
+}
+
+function showAnswers(answers) {
+    const container = document.getElementById('answersResponse');
+    container.innerHTML = "";
+    console.log("Answer received " + answers)
+    if (!answers || answers.length === 0) {
+        container.textContent = "No answers";
+        return;
+    }
+
+    const ul = document.createElement("ul");
+    answers.forEach(ans => {
+        const li = document.createElement("li");
+        li.textContent = ans.text;
+        ul.appendChild(li);
+    });
+    container.appendChild(ul);
+}
+
+function logPing(message) {
+    const pingLog = document.getElementById("pingLog");
+    const p = document.createElement("p");
+    p.textContent = message;
+    pingLog.appendChild(p);
+    pingLog.scrollTop = pingLog.scrollHeight;
+}
+
 function fetchQuestion() {
     var id = document.getElementById('questionId').value;
     var withAnswers = document.getElementById('withAnswers').checked;
@@ -126,12 +158,4 @@ function fetchQuestion() {
         'withAnswers': withAnswers
     }));
     console.log("Fetched question id: ", id, ", withAnswers: " + withAnswers)
-}
-
-function logPing(message) {
-    const pingLog = document.getElementById("pingLog");
-    const p = document.createElement("p");
-    p.textContent = message;
-    pingLog.appendChild(p);
-    pingLog.scrollTop = pingLog.scrollHeight;
 }

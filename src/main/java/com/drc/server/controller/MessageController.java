@@ -16,7 +16,7 @@ public class MessageController {
     private QuestionService questionService;
 
     @MessageMapping("/chat")
-    @SendTo("/client/messages") //returns JSON
+    @SendTo("/chat") //returns JSON
     public OutputMessage answerChat(Message message) {
 
         OutputMessage outputMessage ;

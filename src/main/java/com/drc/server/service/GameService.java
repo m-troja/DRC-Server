@@ -7,4 +7,5 @@ public interface GameService {
     void setCheater(Game game);
     void sendQuestionToAllClients(Game game);
     void save(Game game);
+    void sendAnswers(Game game);
 }
