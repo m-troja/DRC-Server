@@ -32,7 +32,7 @@ public class UserCnv {
             role =  user.getRole().getName();
         }
 
-        Integer gameId = 0;
+        Integer gameId = -1;
         if ( user.getGame() != null) {
             if ( user.getGame().getId() != null) {
                 gameId = user.getGame().getId();
