@@ -50,6 +50,16 @@ public class DefaultGameService implements GameService {
     }
 
     public void setCheater(Game game) {
+        List<User> allUsersInGame = userService.getUsersByGame(game);
+
+        // Check if cheater already in game
+        for (User userInGame : allUsersInGame) {
+            if (userInGame.getRole().equals(roleService.getRoleByName(RoleService.ROLE_CHEATER))) {
+                log.debug("Cheater already in game: {}", userInGame);
+                return;
+            }
+        }
+
         List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_USER), game);
 
         if (!users.isEmpty()) {
@@ -62,6 +72,19 @@ public class DefaultGameService implements GameService {
         else {
             log.debug("No users connected - no cheater selected");
         }
+    }
+
+    public void setCheater(String username) {
+        User user = userService.getUserByname(username);
+        user.setRole(roleService.getRoleByName(RoleService.ROLE_CHEATER));
+
+        try {
+            userService.update(user);
+        } catch (Exception e) {
+            log.debug("Error setting cheater by admin: {}" ,user);
+            throw new RuntimeException(e);
+        }
+        log.debug("Cheater set by admin: {}" ,user);
     }
 
     public void sendQuestionToAllClients(Game game) {

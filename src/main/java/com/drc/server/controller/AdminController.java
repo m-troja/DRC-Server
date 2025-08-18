@@ -2,11 +2,13 @@ package com.drc.server.controller;
 
 import com.drc.server.entity.Game;
 import com.drc.server.service.GameService;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/v1/admin")
 @RestController
@@ -53,13 +55,25 @@ public class AdminController {
     }
 
     @GetMapping("/next-question")
-    public ResponseEntity<String> nextQuestion(@RequestParam("gameId") String gameId) {
-        Game game = gameService.getGameById(Integer.valueOf(gameId));
+    public ResponseEntity<String> nextQuestion(@RequestParam("gameId") Integer gameId) {
+        Game game = gameService.getGameById(gameId);
         log.debug("Game before next question: {}", game);
         game = gameService.triggerNextQuestion(game);
         log.debug("Game after next question: {}", game);
         return ResponseEntity.status(HttpStatus.OK)
                 .body("Next questionId: " + game.getCurrentQuestionId());
+    }
+
+    @GetMapping("/cheater")
+    public ResponseEntity<String> setCheater(@RequestParam("name") String name) {
+        try {
+            gameService.setCheater(name);
+        } catch (Exception e) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error setting cheater for user: " + name);
+        }
+        return ResponseEntity.status(HttpStatus.OK)
+                .body("Cheater set: " + name);
     }
 
     public AdminController(GameService gameService) {

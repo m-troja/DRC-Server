@@ -18,7 +18,6 @@ public interface UserService {
     User getByStompSessionId(String stompSesssionid);
     User getUserByname(String name);
     List<User> getUsers();
-    void setCheater(String username);
     List<User> getUsersByRole(Role role);
     List<User> getUsersWithNoGame();
     List<User> getUsersByRoleAndGame(Role role, Game game);
