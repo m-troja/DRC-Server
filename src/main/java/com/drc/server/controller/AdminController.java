@@ -16,6 +16,7 @@ public class AdminController {
     private GameService gameService;
 
     private final String START_GAME = "START_GAME";
+    private final String NEXT_QUESTION = "NEXT_QUESTION";
     private final Integer minimumPlayerQty = 1;
     private final String NOT_ENOUGH_PLAYERS = "Error: not enough players connected. Required: ";
     private final String NO_PLAYERS = "Error: no users connected";
@@ -26,7 +27,7 @@ public class AdminController {
 
         log.debug("cmd: {}", cmd);
 
-        Game game;
+        Game game = new Game();
 
         if (cmd.equals(START_GAME))  {
             game = gameService.startNewGame();
@@ -49,7 +50,16 @@ public class AdminController {
         else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Command not supported");
         }
+    }
 
+    @GetMapping("/next-question")
+    public ResponseEntity<String> nextQuestion(@RequestParam("gameId") String gameId) {
+        Game game = gameService.getGameById(Integer.valueOf(gameId));
+        log.debug("Game before next question: {}", game);
+        game = gameService.triggerNextQuestion(game);
+        log.debug("Game after next question: {}", game);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body("Next questionId: " + game.getCurrentQuestionId());
     }
 
     public AdminController(GameService gameService) {

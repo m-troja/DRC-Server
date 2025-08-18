@@ -9,4 +9,5 @@ public interface GameService {
     void save(Game game);
     void sendAnswers(Game game);
     Game getGameById(Integer id);
+    Game triggerNextQuestion(Game game);
 }

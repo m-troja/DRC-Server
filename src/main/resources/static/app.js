@@ -27,10 +27,10 @@ function connect() {
         stompClient.connect({}, function(frame) {
             setConnected(true);
 
-//            stompClient.subscribe('/client/question', function (messageOutput) {
-//                const question = JSON.parse(messageOutput.body);
-//                showQuestion(question);
-//            });
+            stompClient.subscribe('/client/question', function (messageOutput) {
+                const question = JSON.parse(messageOutput.body);
+                showQuestion(question);
+            });
 
             stompClient.subscribe('/user/' + from + '/answer', function (messageOutput) {
                 const answers = JSON.parse(messageOutput.body);

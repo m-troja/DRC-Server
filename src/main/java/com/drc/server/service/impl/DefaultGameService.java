@@ -68,7 +68,7 @@ public class DefaultGameService implements GameService {
         Question question = questionService.getQuestion(game.getCurrentQuestionId());
         QuestionDto questionDto = questionCnv.convertQuestionToQuestionDto(question);
         messagingTemplate.convertAndSend(clientQuestionEndpoint, questionDto);
-        log.debug("Broadcasted to {} : {}", clientQuestionEndpoint,  questionDto);
+        log.debug("Sent question to {} : {}", clientQuestionEndpoint,  questionDto);
     }
 
     public void save(Game game) {
@@ -112,5 +112,19 @@ public class DefaultGameService implements GameService {
         this.gameRepo = gameRepo;
         this.answerCnv = answerCnv;
         this.questionCnv = questionCnv;
+    }
+
+    public Game triggerNextQuestion(Game game) {
+        Integer currentQuestionId = game.getCurrentQuestionId();
+        Integer nextQuestionId = ++currentQuestionId;
+        log.debug("currentQuestionId {}, nextQuestionId{}", currentQuestionId, nextQuestionId);
+        log.debug("Game before change{}", game);
+        game.setCurrentQuestionId(nextQuestionId);
+        save(game);
+        log.debug("Game after change{}", game);
+
+        sendQuestionToAllClients(game);
+        sendAnswers(game);
+        return game;
     }
 }
