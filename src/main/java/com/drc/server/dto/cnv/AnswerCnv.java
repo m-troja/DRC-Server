@@ -13,7 +13,7 @@ import java.util.List;
 public class AnswerCnv {
 
     public AnswerDto converAnswerToAnswerDto(Answer answer) {
-        return new AnswerDto(answer.getId(), answer.getText());
+        return new AnswerDto(answer.getId(), answer.getText(), answer.getValue());
     }
     public List<AnswerDto> converAnswersToAnswerDtos(List<Answer> answers) {
         List<AnswerDto> dtos = new ArrayList<>();

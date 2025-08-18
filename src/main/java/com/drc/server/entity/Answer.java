@@ -28,7 +28,9 @@ public class Answer {
 	@JoinColumn(name = "question_id")
 	private Question question;
 
-	@Override
+    private Double value;
+
+    @Override
 	public String toString() {
 		return "Answer [id=" + id + ", text=" + text + "]";
 	}

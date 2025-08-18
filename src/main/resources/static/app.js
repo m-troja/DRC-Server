@@ -24,8 +24,8 @@ function connect() {
         const socket = new SockJS(`http://localhost:8080/game?username=${encodeURIComponent(from)}&role=${encodeURIComponent(role)}`);
         stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, function(frame) {
-            setConnected(true);
+            stompClient.connect({}, function(frame) {
+                setConnected(true);
 
             stompClient.subscribe('/client/question', function (messageOutput) {
                 const question = JSON.parse(messageOutput.body);
@@ -37,32 +37,19 @@ function connect() {
                 showAnswers(answers);
             });
 
-//   Client listens to private channel - to get answers
             stompClient.subscribe('/user/' + from + '/queue/answer', function (messageOutput) {
                 const answers = JSON.parse(messageOutput.body);
                 showAnswers(answers);
             });
 
-//            stompClient.subscribe('/user/test/queue/answer', function (messageOutput) {
-//                    const answers = JSON.parse(messageOutput.body);
-//                    showAnswers(answers);
-//                });
-//             stompClient.subscribe('/user/client/answer', function (messageOutput) {
-//                             const answers = JSON.parse(messageOutput.body);
-//                             showAnswers(answers);
-//                         });
-//                stompClient.subscribe('/queue/client/answer', function (messageOutput) {
-//                                const answers = JSON.parse(messageOutput.body);
-//                                showAnswers(answers);
-//                            });
-                stompClient.subscribe('/client/ping', function (ping) {
-                const pingMessage = JSON.parse(ping.body);
-                logPing("⬅️ Ping received: " + JSON.stringify(pingMessage));
+            stompClient.subscribe('/client/ping', function (ping) {
+            const pingMessage = JSON.parse(ping.body);
+            logPing("⬅️ Ping received: " + JSON.stringify(pingMessage));
 
-                const reply = {
-                    text: "KeepAlive from client!",
-                    date: new Date().toISOString()
-                };
+            const reply = {
+                text: "KeepAlive from client!",
+                date: new Date().toISOString()
+            };
 
 //                stompClient.send("/server/ping", {}, JSON.stringify(reply));
 //                logPing("➡️ Ping sent: " + JSON.stringify(reply));
@@ -126,21 +113,54 @@ function showQuestion(question) {
 function showAnswers(answers) {
     const container = document.getElementById('answersResponse');
     container.innerHTML = "";
-    console.log("Answer received " + answers)
-    if (!answers || answers.length === 0) {
+
+    console.log("Answers received:", answers);
+
+    if (!Array.isArray(answers) || answers.length === 0) {
         container.textContent = "No answers";
         return;
     }
 
-    const ul = document.createElement("ul");
-    answers.forEach(ans => {
-        const li = document.createElement("li");
-        li.textContent = ans.text;
-        ul.appendChild(li);
-    });
-    container.appendChild(ul);
-}
+    // Create table
+    const table = document.createElement("table");
+    table.border = "1";
+    table.style.borderCollapse = "collapse";
 
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    ["#", "Text", "Value"].forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        th.style.padding = "4px";
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    answers.forEach((answer, index) => {
+        const row = document.createElement("tr");
+
+        const numberCell = document.createElement("td");
+        numberCell.textContent = index + 1;
+
+        const textCell = document.createElement("td");
+        textCell.textContent = answer?.text ?? "(no text)";
+
+        const valueCell = document.createElement("td");
+        valueCell.textContent = answer?.value ?? "(no value)";
+
+        [numberCell, textCell, valueCell].forEach(cell => {
+            cell.style.padding = "4px";
+            row.appendChild(cell);
+        });
+
+        tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    container.appendChild(table);
+}
 function logPing(message) {
     const pingLog = document.getElementById("pingLog");
     const p = document.createElement("p");

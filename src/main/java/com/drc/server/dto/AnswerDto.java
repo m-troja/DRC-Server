@@ -1,4 +1,4 @@
 package com.drc.server.dto;
 
-public record AnswerDto(Integer id, String text){
+public record AnswerDto(Integer id, String text, Double value){
 }
