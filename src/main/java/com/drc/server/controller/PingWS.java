@@ -8,7 +8,7 @@ import org.springframework.stereotype.Controller;
 
 @Slf4j
 @Controller
-public class PingController {
+public class PingWS {
 
     @MessageMapping("/ping")
     @SendTo("/ping")
