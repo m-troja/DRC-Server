@@ -26,10 +26,8 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
     private final RoleService roleService;
     private final WebSocketSessionRegistry sessionRegistry;
 
-    private static final String ERROR_DESTINATION = "/client/error";
     private static final String ROLE_ADMIN_VALUE = "admin";
     public static final String HTTP_SESSION_ID_PARAM_NAME = "HTTP_SESSION_ID";
-    public static final String USERNAME_PARAM_NAME = "username";
 
     private final Map<String, Long> blockedSessions = new ConcurrentHashMap<>();
 
@@ -48,7 +46,6 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
         String httpSessionId = servletRequest.getServletRequest().getSession().getId();
         String role = servletRequest.getServletRequest().getParameter("role");
         attributes.put(HTTP_SESSION_ID_PARAM_NAME, httpSessionId);
-//        attributes.put(USERNAME_PARAM_NAME, username);
 
         log.debug("Handshake started, username: {}, role: {}, httpSessionId: {}", username, role, httpSessionId);
         log.debug("Handshake attributes before return: {}", attributes);

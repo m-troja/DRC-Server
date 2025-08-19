@@ -2,6 +2,7 @@ package com.drc.server.service;
 
 import com.drc.server.entity.AnswerRequest;
 import com.drc.server.entity.Game;
+import com.drc.server.entity.User;
 
 public interface GameService {
 
@@ -14,4 +15,6 @@ public interface GameService {
     void sendAllAnswersForAdminAndCheater(Game game);
     Game getGameById(Integer id);
     Game triggerNextQuestion(Game game);
+    void notifyAdminThatNewUserConnected(User user);
+    void notifyAdminThatUserDisconnected(User user);
 }
