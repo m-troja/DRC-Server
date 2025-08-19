@@ -2,6 +2,7 @@ package com.drc.server.websocket;
 
 import com.drc.server.entity.User;
 import com.drc.server.service.GameService;
+import com.drc.server.service.NotificationService;
 import com.drc.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +16,9 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @Slf4j
 @Component
 public class WebSocketEventListener {
-    private final WebSocketSessionRegistry sessionRegistry;
     private final GameService gameService;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
@@ -35,7 +36,7 @@ public class WebSocketEventListener {
         } else {
             log.debug("User found for stompSessionId: {}, user: {}", stompSessionId, user.getName());
             userService.update(user);
-            gameService.notifyAdminThatNewUserConnected(user);
+            notificationService.notifyAdminThatNewUserConnected(user);
         }
         log.debug("Debug: ");
         log.debug("user by stompSessionId: {} ", userService.getByStompSessionId(stompSessionId));
@@ -45,17 +46,23 @@ public class WebSocketEventListener {
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         String stompSessionId = event.getSessionId();
         log.debug("SessionDisconnectEvent: stompSessionId: {}", stompSessionId);
-
         User user = userService.getByStompSessionId(stompSessionId);
         if (user == null) {
             log.debug("No user found for stompSessionId: {}", stompSessionId);
             return;
         }
+    }
 
-        log.debug("Disconnect user: {}", user);
-        gameService.notifyAdminThatUserDisconnected(user);
-        sessionRegistry.unregister(user.getHttpSessionId());
-        userService.delete(user);
-        log.debug("Unregistered and deleted user: {}", user);
+    public void disconnectUser(User user) {
+        if (user == null) {
+            log.debug("No user found ");
+            return;
+        }
+
+            log.debug("Disconnect user: {}", user);
+            notificationService.notifyAdminThatUserDisconnected(user);
+            userService.delete(user);
+            log.debug("Unregistered and deleted user: {}", user);
+
     }
 }

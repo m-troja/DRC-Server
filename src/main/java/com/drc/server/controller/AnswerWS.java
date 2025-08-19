@@ -1,16 +1,11 @@
 package com.drc.server.controller;
 
-import com.drc.server.dto.AnswerDto;
 import com.drc.server.dto.cnv.AnswerCnv;
-import com.drc.server.entity.Answer;
 import com.drc.server.entity.AnswerRequest;
-import com.drc.server.entity.Game;
-import com.drc.server.entity.PingMessage;
 import com.drc.server.service.AnswerService;
 import com.drc.server.service.GameService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 
 /*
@@ -28,7 +23,7 @@ public class AnswerWS {
     public void sendAnswerToUsers(AnswerRequest ar) {
         log.debug("Controller /answer was triggered with: {}", ar);
 
-        gameService.sendAnswerToUsers(ar);
+        sendAnswerToUsers(ar);
     }
 
     public AnswerWS(AnswerService answerService, GameService gameService, AnswerCnv answerCnv) {

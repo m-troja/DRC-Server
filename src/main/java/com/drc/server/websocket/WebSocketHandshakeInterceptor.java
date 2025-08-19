@@ -5,6 +5,7 @@ import com.drc.server.service.RoleService;
 import com.drc.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -24,7 +25,7 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
 
     private final UserService userService;
     private final RoleService roleService;
-    private final WebSocketSessionRegistry sessionRegistry;
+    private final @Lazy WebSocketSessionRegistry sessionRegistry;
 
     private static final String ROLE_ADMIN_VALUE = "admin";
     public static final String HTTP_SESSION_ID_PARAM_NAME = "HTTP_SESSION_ID";
@@ -34,8 +35,9 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
         ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
-        String query = request.getURI().getQuery();
 
+        // Get username from http query
+        String query = request.getURI().getQuery();
         for (String param : query.split("&")) {
             if (param.startsWith("username=")) {
                 attributes.put("username", param.split("=")[1]);
@@ -50,6 +52,7 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
         log.debug("Handshake started, username: {}, role: {}, httpSessionId: {}", username, role, httpSessionId);
         log.debug("Handshake attributes before return: {}", attributes);
 
+        // Block repeated user's request
         Long blockedUntil = blockedSessions.get(httpSessionId);
         long now = System.currentTimeMillis();
 
