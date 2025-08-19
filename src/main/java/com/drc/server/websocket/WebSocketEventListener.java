@@ -1,6 +1,7 @@
 package com.drc.server.websocket;
 
 import com.drc.server.entity.User;
+import com.drc.server.service.GameService;
 import com.drc.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @Component
 public class WebSocketEventListener {
     private final WebSocketSessionRegistry sessionRegistry;
+    private final GameService gameService;
     private final UserService userService;
 
     @EventListener
@@ -28,11 +30,12 @@ public class WebSocketEventListener {
         log.info("STOMP CONNECT event, stompSessionId: {}", stompSessionId);
         User user = userService.getUserByHttpSesssionid(sessionId);
         user.setStompSessionId(stompSessionId);
-        userService.update(user);
         if (user == null) {
             log.debug("User not found for stompSessionId: {}", stompSessionId);
         } else {
             log.debug("User found for stompSessionId: {}, user: {}", stompSessionId, user.getName());
+            userService.update(user);
+            gameService.notifyAdminThatNewUserConnected(user);
         }
         log.debug("Debug: ");
         log.debug("user by stompSessionId: {} ", userService.getByStompSessionId(stompSessionId));
@@ -50,7 +53,7 @@ public class WebSocketEventListener {
         }
 
         log.debug("Disconnect user: {}", user);
-
+        gameService.notifyAdminThatUserDisconnected(user);
         sessionRegistry.unregister(user.getHttpSessionId());
         userService.delete(user);
         log.debug("Unregistered and deleted user: {}", user);

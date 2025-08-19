@@ -7,13 +7,16 @@ import com.drc.server.dto.cnv.QuestionCnv;
 import com.drc.server.entity.*;
 import com.drc.server.persistence.GameRepo;
 import com.drc.server.service.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+@RequiredArgsConstructor
 @Slf4j
 @Service
 public class DefaultGameService implements GameService {
@@ -26,9 +29,12 @@ public class DefaultGameService implements GameService {
     private final GameRepo gameRepo;
     private final AnswerCnv answerCnv;
     private final QuestionCnv questionCnv;
-    private final String clientQuestionEndpoint = "/client/question";
-    private final String clientAllAnswersEndpoint = "/queue/all-answers"; // Sends message for specific user
-    private final String clientAnswerEndpoint = "/queue/answer";
+    private static final String clientQuestionEndpoint = "/client/question";
+    private static final String clientAllAnswersEndpoint = "/queue/all-answers"; // Sends message for specific user
+    private static final String clientAnswerEndpoint = "/queue/answer";
+    private static final String adminEventEndpoint = "/queue/admin-event";
+    private static final String newUserConnectedMessage = "New user connected";
+    private static final String userDisconnectedMessage = "User disconnected";
 
     public Game startNewGame() {
         Game game = new Game();
@@ -126,18 +132,6 @@ public class DefaultGameService implements GameService {
         return game;
     }
 
-    public DefaultGameService(UserService userService, RoleService roleService, AnswerService answerService, QuestionService questionService,
-                              SimpMessagingTemplate messagingTemplate, GameRepo gameRepo, AnswerCnv answerCnv, QuestionCnv questionCnv) {
-        this.userService = userService;
-        this.roleService = roleService;
-        this.answerService = answerService;
-        this.questionService = questionService;
-        this.messagingTemplate = messagingTemplate;
-        this.gameRepo = gameRepo;
-        this.answerCnv = answerCnv;
-        this.questionCnv = questionCnv;
-    }
-
     public Game triggerNextQuestion(Game game) {
         Integer currentQuestionId = game.getCurrentQuestionId();
         Integer nextQuestionId = ++currentQuestionId;
@@ -178,5 +172,39 @@ public class DefaultGameService implements GameService {
             messagingTemplate.convertAndSendToUser(user.getName(), clientAnswerEndpoint, answerDto);
             log.debug("Sent {} to {}, ws: {}", answerDto, user, clientAnswerEndpoint);
         }
+    }
+
+    public void notifyAdminThatNewUserConnected(User user) {
+        List<User> adminsWithNoGame = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_ADMIN), null);
+        HashMap<String, String> payload = new HashMap<>();
+        payload.put(newUserConnectedMessage, user.getName());
+
+        if (adminsWithNoGame.isEmpty()) {
+            log.debug("Skip informing admin about user connected, since no admin is connected");
+        }
+
+        for ( User admin : adminsWithNoGame) {
+            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, payload);
+            log.debug("Informed admin about new user connected: {}, endpoint: {}", user, adminEventEndpoint);
+            log.debug("payload: {}",payload);
+        }
+        payload.clear();;
+    }
+
+    public void notifyAdminThatUserDisconnected(User user) {
+        List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_ADMIN), user.getGame());
+        HashMap<String, String> payload = new HashMap<>();
+        payload.put(userDisconnectedMessage, user.getName());
+
+        if (admins.isEmpty()) {
+            log.debug("Skip informing admin about user disconnected, since no admin is connected");
+        }
+
+        for ( User admin : admins) {
+            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, payload);
+            log.debug("Informed admin about user disconnected: {}, endpoint: {}", user, adminEventEndpoint);
+            log.debug("payload: {}",payload);
+        }
+        payload.clear();;
     }
 }

@@ -21,8 +21,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Slf4j
 public class StompConfiguration implements WebSocketMessageBrokerConfigurer {
 
-    private final UserService userService;
-    private final WebSocketSessionRegistry sessionRegistry;
     private final WebSocketHandshakeInterceptor handshakeInterceptor;
     private final UserPrincipalChannelInterceptor userPrincipalChannelInterceptor;
 

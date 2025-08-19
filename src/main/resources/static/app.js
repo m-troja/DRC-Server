@@ -30,6 +30,12 @@ function connect() {
                 const question = JSON.parse(messageOutput.body);
                 showQuestion(question);
             });
+
+            stompClient.subscribe('/user/' + from + '/queue/admin-event', function (messageOutput) {
+                            const question = JSON.parse(messageOutput.body);
+                            showQuestion(messageOutput.body);
+                        });
+
 //
 //            stompClient.subscribe('/user/' + from + '/answer', function (messageOutput) {
 //                const answers = JSON.parse(messageOutput.body);
