@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/admin")
 @RestController
 @Slf4j
-public class AdminController {
+public class AdminRestController {
 
-    private GameService gameService;
+    private final GameService gameService;
 
     private final String START_GAME = "START_GAME";
     private final String NEXT_QUESTION = "NEXT_QUESTION";
@@ -45,7 +45,7 @@ public class AdminController {
             }
             log.debug(SC_OK, game);
             gameService.sendQuestionToAllClients(game);
-            gameService.sendAnswers(game);
+            gameService.sendAllAnswersForAdminAndCheater(game);
             return ResponseEntity.status(HttpStatus.OK)
                     .body("GameId: " + game.getId());
         }
@@ -76,7 +76,7 @@ public class AdminController {
                 .body("Cheater set: " + name);
     }
 
-    public AdminController(GameService gameService) {
+    public AdminRestController(GameService gameService) {
         this.gameService = gameService;
     }
 }

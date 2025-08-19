@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping("/v1/")
-public class UserController {
+public class UserRestController {
 
     private final UserService userService;
     private final GameService gameService;

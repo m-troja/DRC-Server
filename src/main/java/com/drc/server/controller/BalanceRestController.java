@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequestMapping("/v1")
-public class BalanceController {
+public class BalanceRestController {
 
     private final UserService userService;
 

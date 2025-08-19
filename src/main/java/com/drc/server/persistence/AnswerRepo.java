@@ -12,4 +12,9 @@ public interface AnswerRepo extends CrudRepository<Answer, Integer> {
 
     @Query("SELECT a FROM Answer a WHERE a.question.id = ?1")
     public List<Answer> findAllByQuestionId(Integer questionId);
+
+    @Query("SELECT a FROM Answer a WHERE a.value = ?1 and a.question.id = ?2")
+    public Answer findByValueAndQuestionId(Double value, Integer questionId);
+
+    public Answer findByValue(Double value);
 }

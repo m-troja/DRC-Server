@@ -19,7 +19,6 @@ function connect() {
         alert("Role must be selected!");
         return;
     }
-
     try {
         const socket = new SockJS(`http://localhost:8080/game?username=${encodeURIComponent(from)}&role=${encodeURIComponent(role)}`);
         stompClient = Stomp.over(socket);
@@ -31,15 +30,21 @@ function connect() {
                 const question = JSON.parse(messageOutput.body);
                 showQuestion(question);
             });
+//
+//            stompClient.subscribe('/user/' + from + '/answer', function (messageOutput) {
+//                const answers = JSON.parse(messageOutput.body);
+//                showAnswers(answers);
+//            });
 
-            stompClient.subscribe('/user/' + from + '/answer', function (messageOutput) {
+            stompClient.subscribe('/user/' + from + '/queue/all-answers', function (messageOutput) {
                 const answers = JSON.parse(messageOutput.body);
                 showAnswers(answers);
             });
 
             stompClient.subscribe('/user/' + from + '/queue/answer', function (messageOutput) {
-                const answers = JSON.parse(messageOutput.body);
-                showAnswers(answers);
+                const answer = JSON.parse(messageOutput.body);
+                    showRequestedAnswer(answer);
+
             });
 
             stompClient.subscribe('/client/ping', function (ping) {
@@ -178,4 +183,28 @@ function fetchQuestion() {
         'withAnswers': withAnswers
     }));
     console.log("Fetched question id: ", id, ", withAnswers: " + withAnswers)
+}
+
+function requestAnswer() {
+    var answerQuestestGameId = document.getElementById('answerQuestestGameId').value;
+    var answerQuestestValue = document.getElementById('answerQuestestValue').value;
+
+    stompClient.send("/server/answer", {}, JSON.stringify({
+        'value': answerQuestestValue,
+        'gameId': answerQuestestGameId
+    }));
+    console.log("Requested game id: ", answerQuestestGameId, ", value: " + answerQuestestValue)
+}
+
+function showRequestedAnswer(answer) {
+    const container = document.getElementById('requestedAnswersResponse');
+    container.innerHTML = "";
+
+    const h3 = document.createElement("h3");
+    h3.textContent = "Requested Answer";
+    container.appendChild(h3);
+
+    const p = document.createElement("p");
+    p.textContent = answer.text + " → " + answer.value + " PLN ";
+    container.appendChild(p);
 }

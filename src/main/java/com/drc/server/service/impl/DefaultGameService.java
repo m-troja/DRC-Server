@@ -18,16 +18,17 @@ import java.util.Random;
 @Service
 public class DefaultGameService implements GameService {
 
-    private UserService userService;
-    private RoleService roleService;
-    private AnswerService answerService;
-    private QuestionService questionService;
-    private SimpMessagingTemplate messagingTemplate;
-    private GameRepo gameRepo;
-    private AnswerCnv answerCnv;
-    private QuestionCnv questionCnv;
-    private String clientQuestionEndpoint = "/client/question";
-    private String clientAnswerEndpoint = "/queue/answer"; // Sends message for specific user
+    private final UserService userService;
+    private final RoleService roleService;
+    private final AnswerService answerService;
+    private final QuestionService questionService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final GameRepo gameRepo;
+    private final AnswerCnv answerCnv;
+    private final QuestionCnv questionCnv;
+    private final String clientQuestionEndpoint = "/client/question";
+    private final String clientAllAnswersEndpoint = "/queue/all-answers"; // Sends message for specific user
+    private final String clientAnswerEndpoint = "/queue/answer";
 
     public Game startNewGame() {
         Game game = new Game();
@@ -98,7 +99,7 @@ public class DefaultGameService implements GameService {
         gameRepo.save(game);
     }
 
-    public void sendAnswers(Game game) {
+    public void sendAllAnswersForAdminAndCheater(Game game) {
         List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_ADMIN), game);
         List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_CHEATER),game);
         log.debug("Admins found: {}", admins);
@@ -110,11 +111,11 @@ public class DefaultGameService implements GameService {
         log.debug("answerDtos found: {}", answerDtos);
 
         for (User admin : admins) {
-            messagingTemplate.convertAndSendToUser(admin.getName(), clientAnswerEndpoint, answerDtos );
+            messagingTemplate.convertAndSendToUser(admin.getName(), clientAllAnswersEndpoint, answerDtos );
             log.debug("Sent answers to {} : {}", admin, answerDtos);
         }
         for (User cheater : cheaters) {
-            messagingTemplate.convertAndSendToUser(cheater.getName(), clientAnswerEndpoint, answerDtos );
+            messagingTemplate.convertAndSendToUser(cheater.getName(), clientAllAnswersEndpoint, answerDtos );
             log.debug("Sent answers to {} : {}", cheater, answerDtos);
         }
     }
@@ -147,7 +148,35 @@ public class DefaultGameService implements GameService {
         log.debug("Game after change{}", game);
 
         sendQuestionToAllClients(game);
-        sendAnswers(game);
+        sendAllAnswersForAdminAndCheater(game);
         return game;
+    }
+
+    public void sendAnswerToUsers(AnswerRequest ar) {
+        Game game;
+        if (getGameById(ar.gameId()) == null) {
+            log.debug("Game is null, gameId = {}", ar.gameId());
+            return;
+        }
+        else {
+            game = getGameById(ar.gameId());
+        }
+
+        Answer answer;
+        if (answerService.getAnswerForQuestionByValueAndGameId(ar.value(), game.getCurrentQuestionId()) == null) {
+            log.debug("Answer is null, answer.value {}, gameId {}", ar.value(), game.getCurrentQuestionId());
+            return;
+        }
+        else {
+            answer = answerService.getAnswerForQuestionByValueAndGameId(ar.value(), game.getCurrentQuestionId());
+        }
+
+        AnswerDto answerDto = answerCnv.converAnswerToAnswerDto(answer);
+        List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_USER), game);
+        log.debug("sendAnswerToUsers: {}, {}, {}, {} ", game, answer, answerDto, users);
+        for (User user : users) {
+            messagingTemplate.convertAndSendToUser(user.getName(), clientAnswerEndpoint, answerDto);
+            log.debug("Sent {} to {}, ws: {}", answerDto, user, clientAnswerEndpoint);
+        }
     }
 }
