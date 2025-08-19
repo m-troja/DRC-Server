@@ -20,7 +20,7 @@ public class DefaultAnswerService implements AnswerService {
 
     public Answer getAnswerForQuestionByValueAndGameId(Double value, Integer questionId) {
         Answer answer = answerRepo.findByValueAndQuestionId(value, questionId);
-        log.debug("GetAnswerForQuestion: answerId {}, questionId {}: {}", value, questionId, answer);
+        log.debug("GetAnswerForQuestion: answer.value{}, answer.questionId {}, answer: {}", value, questionId, answer);
         return answer;
     }
 

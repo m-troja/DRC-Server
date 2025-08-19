@@ -15,7 +15,6 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @Slf4j
 @Component
 public class WebSocketEventListener {
-    private final WebSocketSessionRegistry sessionRegistry;
     private final GameService gameService;
     private final UserService userService;
 
@@ -45,17 +44,23 @@ public class WebSocketEventListener {
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         String stompSessionId = event.getSessionId();
         log.debug("SessionDisconnectEvent: stompSessionId: {}", stompSessionId);
-
         User user = userService.getByStompSessionId(stompSessionId);
         if (user == null) {
             log.debug("No user found for stompSessionId: {}", stompSessionId);
             return;
         }
+    }
 
-        log.debug("Disconnect user: {}", user);
-        gameService.notifyAdminThatUserDisconnected(user);
-        sessionRegistry.unregister(user.getHttpSessionId());
-        userService.delete(user);
-        log.debug("Unregistered and deleted user: {}", user);
+    public void disconnectUser(User user) {
+        if (user == null) {
+            log.debug("No user found ");
+            return;
+        }
+
+            log.debug("Disconnect user: {}", user);
+            gameService.notifyAdminThatUserDisconnected(user);
+            userService.delete(user);
+            log.debug("Unregistered and deleted user: {}", user);
+
     }
 }
