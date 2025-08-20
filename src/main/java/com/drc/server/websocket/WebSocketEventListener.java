@@ -61,6 +61,7 @@ public class WebSocketEventListener {
 
             log.debug("Disconnect user: {}", user);
             notificationService.notifyAdminThatUserDisconnected(user);
+
             userService.delete(user);
             log.debug("Unregistered and deleted user: {}", user);
 
