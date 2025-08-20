@@ -1,10 +1,32 @@
 var stompClient = null;
+let pingInterval = null;
 
 function setConnected(connected) {
     document.getElementById('connect').disabled = connected;
     document.getElementById('disconnect').disabled = !connected;
     document.getElementById('questionResponse').innerHTML = '';
     document.getElementById('answersResponse').innerHTML = '';
+}
+
+
+function startAutoPing() {
+    if (!stompClient || !stompClient.connected) return;
+
+    // send ping every 10 seconds
+    pingInterval = setInterval(() => {
+        const pingMessage = {
+            ping: Date.now()
+        };
+        stompClient.send("/server/ping", {}, JSON.stringify(pingMessage));
+        logPing("➡️ Ping sent: " + JSON.stringify(pingMessage));
+    }, 10000); // 10000 ms = 10 s
+}
+
+function stopAutoPing() {
+    if (pingInterval) {
+        clearInterval(pingInterval);
+        pingInterval = null;
+    }
 }
 
 function connect() {
@@ -25,6 +47,7 @@ function connect() {
 
             stompClient.connect({}, function(frame) {
                 setConnected(true);
+                startAutoPing();
 
             stompClient.subscribe('/client/question', function (messageOutput) {
                 const question = JSON.parse(messageOutput.body);
@@ -52,20 +75,6 @@ function connect() {
                     showRequestedAnswer(answer);
 
             });
-
-            stompClient.subscribe('/client/ping', function (ping) {
-            const pingMessage = JSON.parse(ping.body);
-            logPing("⬅️ Ping received: " + JSON.stringify(pingMessage));
-
-            const reply = {
-                text: "KeepAlive from client!",
-                date: new Date().toISOString()
-            };
-
-//                stompClient.send("/server/ping", {}, JSON.stringify(reply));
-//                logPing("➡️ Ping sent: " + JSON.stringify(reply));
-            });
-
         }, function (error) {
             console.error('STOMP connection error:', error);
             alert("Connection error: Check console for details");
