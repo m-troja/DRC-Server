@@ -2,6 +2,7 @@ package com.drc.server.websocket;
 
 import com.drc.server.entity.User;
 import com.drc.server.service.GameService;
+import com.drc.server.service.NotificationService;
 import com.drc.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 public class WebSocketEventListener {
     private final GameService gameService;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
@@ -34,7 +36,7 @@ public class WebSocketEventListener {
         } else {
             log.debug("User found for stompSessionId: {}, user: {}", stompSessionId, user.getName());
             userService.update(user);
-            gameService.notifyAdminThatNewUserConnected(user);
+            notificationService.notifyAdminThatNewUserConnected(user);
         }
         log.debug("Debug: ");
         log.debug("user by stompSessionId: {} ", userService.getByStompSessionId(stompSessionId));
@@ -58,7 +60,8 @@ public class WebSocketEventListener {
         }
 
             log.debug("Disconnect user: {}", user);
-            gameService.notifyAdminThatUserDisconnected(user);
+            notificationService.notifyAdminThatUserDisconnected(user);
+
             userService.delete(user);
             log.debug("Unregistered and deleted user: {}", user);
 
