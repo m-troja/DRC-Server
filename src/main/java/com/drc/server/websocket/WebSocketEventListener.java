@@ -73,6 +73,5 @@ public class WebSocketEventListener {
                 log.debug("Error deleting user from DB: {}", user);
             }
             log.debug("Deleted user from DB: {}", user);
-
     }
 }

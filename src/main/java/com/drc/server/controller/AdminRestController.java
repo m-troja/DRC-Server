@@ -4,6 +4,7 @@ import com.drc.server.entity.Game;
 import com.drc.server.service.GameService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminRestController {
 
-    private final GameService gameService;
+    @Autowired
+    GameService gameService;
 
     private static final String START_GAME = "START_GAME";
     private static final String NEXT_QUESTION = "NEXT_QUESTION";
