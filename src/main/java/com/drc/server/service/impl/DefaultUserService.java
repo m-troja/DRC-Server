@@ -166,6 +166,9 @@ public class DefaultUserService implements UserService {
         user.setMoney(userMoney);
         update(user);
         return userMoney;
+    }
 
+    public void deleteAllUsers() {
+        userRepo.deleteAll();
     }
 }

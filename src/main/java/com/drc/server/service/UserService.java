@@ -23,4 +23,5 @@ public interface UserService {
     List<User> getUsersByRoleAndGame(Role role, Game game);
     List<User> getUsersByGame(Game game);
     Double updateBalance(BalanceAction action, String username, String value );
+    void deleteAllUsers();
 }
