@@ -2,7 +2,6 @@ package com.drc.server.event;
 
 import com.drc.server.entity.Game;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.springframework.context.ApplicationEvent;
 
 @Getter
