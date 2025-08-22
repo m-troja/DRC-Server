@@ -28,7 +28,7 @@ public class PingWS {
         String sessionId = headerAccessor.getSessionId();
         Principal principal = headerAccessor.getUser();
         User user = userService.getByStompSessionId(sessionId);
-        log.debug("Received ping from session {}, user {}, message {}", sessionId, user , pingMessage);
+        log.debug("Received ping from {}, message {}", user , pingMessage);
 
         sessionRegistry.updateLastPingMap(user, System.currentTimeMillis());
     }
