@@ -49,13 +49,6 @@ public class WebSocketEventListener {
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         String stompSessionId = event.getSessionId();
         log.debug("SessionDisconnectEvent: stompSessionId: {}", stompSessionId);
-        User user = userService.getByStompSessionId(stompSessionId);
-        if (user == null) {
-            log.debug("No user found for stompSessionId: {}", stompSessionId);
-        }
-        else {
-            log.debug("SessionDisconnectEvent: {}", user);
-        }
     }
 
     public void disconnectUser(User user) {
@@ -63,7 +56,6 @@ public class WebSocketEventListener {
             log.debug("No user found ");
             return;
         }
-
             log.debug("Disconnect user: {}", user);
             notificationService.notifyAdminThatUserDisconnected(user);
             log.debug("notifyAdminThatUserDisconnected: {}", user);

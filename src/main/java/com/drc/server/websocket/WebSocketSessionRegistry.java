@@ -51,24 +51,28 @@ public class WebSocketSessionRegistry {
     // Automatically disconnect inactive users
     @Scheduled(fixedDelay = 5000)
     public void disconnectInactiveUsers() {
-        log.debug("Checking inactive users...");
 
-        Long now = System.currentTimeMillis();
-        for ( User user : lastPingMap.keySet()) {
-            if (now - lastPingMap.get(user) > TIMEOUT_MILLIS) {
-                log.debug("Found inactive user: {}", user);
-                log.debug("Remove {} from lastPingMap", user);
-                lastPingMap.remove(user);
-                log.debug("Call Unregister with stompSessionId {}", user.getStompSessionId());
-                unregister(user.getStompSessionId());
-                log.debug("Go to webSocketEventListener.disconnectUser({})", user);
-                webSocketEventListener.disconnectUser(user);
+        if (!getAllSessions().isEmpty())
+        {
+            log.debug("Checking inactive users...");
+
+            Long now = System.currentTimeMillis();
+            for ( User user : lastPingMap.keySet()) {
+                if (now - lastPingMap.get(user) > TIMEOUT_MILLIS) {
+                    log.debug("Found inactive user: {}", user);
+                    log.debug("Remove {} from lastPingMap", user);
+                    lastPingMap.remove(user);
+                    log.debug("Call Unregister with stompSessionId {}", user.getStompSessionId());
+                    unregister(user.getStompSessionId());
+                    log.debug("Go to webSocketEventListener.disconnectUser({})", user);
+                    webSocketEventListener.disconnectUser(user);
+                }
             }
         }
     }
 
-    public Map<String, User> getAllUsers() {
-        return mapOfSessionIdAndUser;
+    public Map<String, User> getAllSessions() {
+        return sessions;
     }
 
     public Long getLastPingOfUser(User user) {
