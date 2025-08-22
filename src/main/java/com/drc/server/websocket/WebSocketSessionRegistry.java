@@ -28,15 +28,18 @@ public class WebSocketSessionRegistry {
     @Value("${timeout.miliseconds}")
     private Long TIMEOUT_MILLIS; // 20 s
 
-    public void register(String sessionId, User user) {
+    public void register(String stompSessionId, User user) {
         lastPingMap.put(user, System.currentTimeMillis());
-        sessions.put(sessionId, user);
+        log.debug("Updated last ping for user {}: {}", user, System.currentTimeMillis());
+
+        sessions.put(stompSessionId, user);
+        log.debug("Put into sessions sessionId {},{}", stompSessionId, user);
         log.debug("Registered {}, time {}", user, System.currentTimeMillis());
-        log.debug("TIMEOUT_MILLIS {}", TIMEOUT_MILLIS);
     }
 
     public void unregister(String sessionId) {
-
+        log.debug("Unregister sessionId {}", sessionId);
+        sessions.remove(sessionId);
     }
 
     public void updateLastPingMap(User user, Long newTime) {
@@ -54,8 +57,11 @@ public class WebSocketSessionRegistry {
         for ( User user : lastPingMap.keySet()) {
             if (now - lastPingMap.get(user) > TIMEOUT_MILLIS) {
                 log.debug("Found inactive user: {}", user);
+                log.debug("Remove {} from lastPingMap", user);
                 lastPingMap.remove(user);
+                log.debug("Call Unregister with stompSessionId {}", user.getStompSessionId());
                 unregister(user.getStompSessionId());
+                log.debug("Go to webSocketEventListener.disconnectUser({})", user);
                 webSocketEventListener.disconnectUser(user);
             }
         }

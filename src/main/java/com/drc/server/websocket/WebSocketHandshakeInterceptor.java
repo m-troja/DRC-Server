@@ -5,7 +5,6 @@ import com.drc.server.service.RoleService;
 import com.drc.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -25,7 +24,6 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
 
     private final UserService userService;
     private final RoleService roleService;
-    private final @Lazy WebSocketSessionRegistry sessionRegistry;
 
     private static final String ROLE_ADMIN_VALUE = "admin";
     public static final String HTTP_SESSION_ID_PARAM_NAME = "HTTP_SESSION_ID";
@@ -77,7 +75,6 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
             try {
                 String userValidationResult = userService.save(user);
                 if (UserService.VALIDATE_OK.equals(userValidationResult)) {
-                    sessionRegistry.register(httpSessionId, user);
                     log.debug("Registered: httpSessionId={}, username={}", httpSessionId, username);
                     return true;
                 } else {

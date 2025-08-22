@@ -19,6 +19,7 @@ public class WebSocketEventListener {
     private final GameService gameService;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final WebSocketSessionRegistry webSocketSessionRegistry;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
@@ -35,6 +36,8 @@ public class WebSocketEventListener {
             log.debug("User not found for stompSessionId: {}", stompSessionId);
         } else {
             log.debug("User found for stompSessionId: {}, user: {}", stompSessionId, user.getName());
+            webSocketSessionRegistry.register(stompSessionId, user);
+
             userService.update(user);
             notificationService.notifyAdminThatNewUserConnected(user);
         }
@@ -49,7 +52,9 @@ public class WebSocketEventListener {
         User user = userService.getByStompSessionId(stompSessionId);
         if (user == null) {
             log.debug("No user found for stompSessionId: {}", stompSessionId);
-            return;
+        }
+        else {
+            log.debug("SessionDisconnectEvent: {}", user);
         }
     }
 
@@ -61,8 +66,13 @@ public class WebSocketEventListener {
 
             log.debug("Disconnect user: {}", user);
             notificationService.notifyAdminThatUserDisconnected(user);
-            userService.delete(user);
-            log.debug("Unregistered and deleted user: {}", user);
+            log.debug("notifyAdminThatUserDisconnected: {}", user);
+            try {
+                userService.delete(user);
+            } catch (Exception e) {
+                log.debug("Error deleting user from DB: {}", user);
+            }
+            log.debug("Deleted user from DB: {}", user);
 
     }
 }
