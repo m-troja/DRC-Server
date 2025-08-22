@@ -12,4 +12,5 @@ public interface GameService {
     void save(Game game);
     Game getGameById(Integer id);
     Game triggerNextQuestion(Game game);
+    void deleteAllGames();
 }

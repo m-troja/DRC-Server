@@ -104,4 +104,13 @@ public class DefaultGameService implements GameService {
         gameRepo.save(game);
     }
 
+    public void deleteAllGames() {
+        try {
+            userService.deleteAllUsers();
+            gameRepo.deleteAll();
+            log.debug("Shutdown: Removed all users and games");
+        } catch (Exception e) {
+            log.debug("Shutdown: Error removing all users and games");
+        }
+    }
 }

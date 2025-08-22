@@ -22,6 +22,7 @@ public class Game {
     private List<User> users;
     private Integer currentQuestionId;
     private GameStatus gameStatus;
+    private Integer playersQty;
 
     public Game(List<User> users, Integer currentQuestionId, GameStatus gameStatus) {
         this.users = users;
