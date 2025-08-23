@@ -13,4 +13,5 @@ public interface GameService {
     Game getGameById(Integer id);
     Game triggerNextQuestion(Game game);
     void deleteAllGames();
+    boolean allowNextQuestion(Game game);
 }

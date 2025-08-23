@@ -36,7 +36,7 @@ public class WebSocketEventListener {
             log.debug("User not found for stompSessionId: {}", stompSessionId);
         } else {
             log.debug("User found for stompSessionId: {}, user: {}", stompSessionId, user.getName());
-            webSocketSessionRegistry.register(stompSessionId, user);
+            webSocketSessionRegistry.register(stompSessionId, user.getId());
 
             userService.update(user);
             notificationService.notifyAdminThatNewUserConnected(user);

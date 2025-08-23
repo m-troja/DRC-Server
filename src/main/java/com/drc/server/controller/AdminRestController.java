@@ -37,7 +37,7 @@ public class AdminRestController {
         int playersConnected = webSocketSessionRegistry.getAllSessions().size() ;
         log.debug("cmd: {}", cmd);
 
-        Game game = new Game();
+        Game game;
 
         if (cmd.equals(START_GAME) ) {
             if (playersConnected >= MINIMUM_PLAYERS_QTY) {
@@ -62,12 +62,18 @@ public class AdminRestController {
 
     @GetMapping("/next-question")
     public ResponseEntity<String> nextQuestion(@RequestParam("gameId") Integer gameId) {
-        Game game = gameService.getGameById(gameId);
-        log.debug("Game before next question: {}", game);
-        game = gameService.triggerNextQuestion(game);
-        log.debug("Game after next question: {}", game);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body("Next questionId: " + game.getCurrentQuestionId());
+        if (gameService.allowNextQuestion(gameService.getGameById(gameId))) {
+            Game game = gameService.getGameById(gameId);
+            log.debug("Game before next question: {}", game);
+            game = gameService.triggerNextQuestion(game);
+            log.debug("Game after next question: {}", game);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body("Next questionId: " + game.getCurrentQuestionId());
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Error requesting new question. You ran out of questions! Game ended.");
+        }
     }
 
     @GetMapping("/cheater")

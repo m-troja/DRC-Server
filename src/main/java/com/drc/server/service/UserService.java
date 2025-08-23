@@ -24,4 +24,5 @@ public interface UserService {
     List<User> getUsersByGame(Game game);
     Double updateBalance(BalanceAction action, String username, String value );
     void deleteAllUsers();
+    User getUserById(Integer id);
 }
