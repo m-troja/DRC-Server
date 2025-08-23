@@ -27,9 +27,14 @@ public class PingWS {
 
         String sessionId = headerAccessor.getSessionId();
         Principal principal = headerAccessor.getUser();
-        User user = userService.getByStompSessionId(sessionId);
-        log.debug("Received ping from {}, message {}", user , pingMessage);
 
-        sessionRegistry.updateLastPingMap(user, System.currentTimeMillis());
+        if (userService.getByStompSessionId(sessionId) != null) {
+            User user = userService.getByStompSessionId(sessionId);
+            log.debug("Received ping from userId: {}, username: {}, message {}", user.getId(), user.getName() , pingMessage);
+            sessionRegistry.updateLastPingMap(user.getId(), System.currentTimeMillis());
+        } else {
+            log.debug("Received ping from not-registered user! SessionId: {}", sessionId);
+        }
+
     }
 }

@@ -30,6 +30,7 @@ public class DefaultGameService implements GameService {
         game.setCurrentQuestionId(1);
         game.setGameStatus(GameStatus.STARTED);
         game.setUsers(users);
+        game.setPlayersQty(users.size());
         save(game);
 
         for (User user: users){
@@ -40,6 +41,21 @@ public class DefaultGameService implements GameService {
         log.debug("Start new {}  ", game);
         gameEventPublisher.publishNewGameStartedEvent(game);
         return game;
+    }
+
+    public boolean allowNextQuestion(Game game) {
+        Integer maxQuestion = game.getMaxQuestion();
+        Integer currentQuestion = game.getCurrentQuestionId();
+        if ( maxQuestion > currentQuestion) {
+            log.debug("ALlowed next question. maxQuestion: {}, currentQuestion: {}", maxQuestion, currentQuestion );
+            return true;
+        }
+        else {
+            game.setGameStatus(GameStatus.END);
+            save(game);
+            log.debug("Reached max question. Game ended. maxQuestion: {}, currentQuestion: {}", maxQuestion, currentQuestion);
+            return false;
+        }
     }
 
     public void setCheater(Game game) {
@@ -79,8 +95,6 @@ public class DefaultGameService implements GameService {
         }
         log.debug("Cheater set by admin: {}" ,user);
     }
-
-
 
     public Game getGameById(Integer id) {
         Game game = gameRepo.findById(id).orElse(null);

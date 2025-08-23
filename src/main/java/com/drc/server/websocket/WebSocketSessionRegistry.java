@@ -1,6 +1,7 @@
 package com.drc.server.websocket;
 
 import com.drc.server.entity.User;
+import com.drc.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketSessionRegistry {
 
     private final Map<String, User> mapOfSessionIdAndUser = new ConcurrentHashMap<>();
-    private final Map<User, Long> lastPingMap = new ConcurrentHashMap<>();
+    private final Map<Integer, Long> lastPingMap = new ConcurrentHashMap<>();
     private final Map<String, User> sessions = new ConcurrentHashMap<>();
+    private final UserService userService;
 
     @Lazy
     @Autowired
@@ -28,13 +30,13 @@ public class WebSocketSessionRegistry {
     @Value("${timeout.miliseconds}")
     private Long TIMEOUT_MILLIS; // 20 s
 
-    public void register(String stompSessionId, User user) {
-        lastPingMap.put(user, System.currentTimeMillis());
-        log.debug("Updated last ping for user {}: {}", user, System.currentTimeMillis());
+    public void register(String stompSessionId, Integer userId) {
+        lastPingMap.put(userId, System.currentTimeMillis());
+        log.debug("Updated last ping for user {}: {}", userId, System.currentTimeMillis());
 
-        sessions.put(stompSessionId, user);
-        log.debug("Put into sessions sessionId {},{}", stompSessionId, user);
-        log.debug("Registered {}, time {}", user, System.currentTimeMillis());
+        sessions.put(stompSessionId, userService.getUserById(userId));
+        log.debug("Put into sessions sessionId {},{}", stompSessionId, userService.getUserById(userId));
+        log.debug("Registered userId {}, time {}", userId, System.currentTimeMillis());
     }
 
     public void unregister(String sessionId) {
@@ -42,10 +44,10 @@ public class WebSocketSessionRegistry {
         sessions.remove(sessionId);
     }
 
-    public void updateLastPingMap(User user, Long newTime) {
-        lastPingMap.put(user, newTime);
-        log.debug("Updated last ping for user {}: {}", user, newTime);
-        log.debug("Entire map {}", lastPingMap);
+    public void updateLastPingMap(Integer userId, Long newTime) {
+        lastPingMap.put(userId, newTime);
+        log.debug("Updated last ping for userId {}: {}", userId, newTime);
+        log.debug("Entire map lastPingUser ID=Time {}", lastPingMap);
     }
 
     // Automatically disconnect inactive users
@@ -57,15 +59,16 @@ public class WebSocketSessionRegistry {
             log.debug("Checking inactive users...");
 
             Long now = System.currentTimeMillis();
-            for ( User user : lastPingMap.keySet()) {
-                if (now - lastPingMap.get(user) > TIMEOUT_MILLIS) {
-                    log.debug("Found inactive user: {}", user);
-                    log.debug("Remove {} from lastPingMap", user);
-                    lastPingMap.remove(user);
-                    log.debug("Call Unregister with stompSessionId {}", user.getStompSessionId());
-                    unregister(user.getStompSessionId());
-                    log.debug("Go to webSocketEventListener.disconnectUser({})", user);
-                    webSocketEventListener.disconnectUser(user);
+            for ( Integer userId : lastPingMap.keySet()) {
+                if (now - lastPingMap.get(userId) > TIMEOUT_MILLIS) {
+                    log.debug("Found inactive userId: {}", userId);
+
+                    log.debug("Remove userId {} from lastPingMap", userId);
+                    lastPingMap.remove(userId);
+                    log.debug("Call Unregister with stompSessionId {}", userService.getUserById(userId).getStompSessionId());
+                    unregister(userService.getUserById(userId).getStompSessionId());
+                    log.debug("Go to webSocketEventListener.disconnectUser({})", userService.getUserById(userId));
+                    webSocketEventListener.disconnectUser(userService.getUserById(userId));
                 }
             }
         }
@@ -75,8 +78,8 @@ public class WebSocketSessionRegistry {
         return sessions;
     }
 
-    public Long getLastPingOfUser(User user) {
-        return lastPingMap.get(user);
+    public Long getLastPingOfUser(Integer userId) {
+        return lastPingMap.get(userId);
     }
     public User getUserFromSessionBySessionId(String session) {
         return sessions.get(session);

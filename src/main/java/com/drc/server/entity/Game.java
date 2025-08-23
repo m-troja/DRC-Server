@@ -23,6 +23,7 @@ public class Game {
     private Integer currentQuestionId;
     private GameStatus gameStatus;
     private Integer playersQty;
+    private Integer maxQuestion;
 
     public Game(List<User> users, Integer currentQuestionId, GameStatus gameStatus) {
         this.users = users;

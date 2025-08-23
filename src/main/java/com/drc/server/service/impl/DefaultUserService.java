@@ -140,7 +140,6 @@ public class DefaultUserService implements UserService {
         List<User> users = userRepo.findByGame(game);
         log.debug("Find users by {} : {} ", game, users);
         return users;
-
     }
 
     public Double updateBalance(BalanceAction actionRequest, String username, String value) {
@@ -170,5 +169,9 @@ public class DefaultUserService implements UserService {
 
     public void deleteAllUsers() {
         userRepo.deleteAll();
+    }
+
+    public User getUserById(Integer id) {
+        return userRepo.findById(id).orElse(null);
     }
 }

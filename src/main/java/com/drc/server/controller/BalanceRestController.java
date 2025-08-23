@@ -25,11 +25,11 @@ public class BalanceRestController {
         Double valueDouble = Double.valueOf(value);
 
         if (!actionRequest.equals(BalanceAction.DECREASE) && !actionRequest.equals(BalanceAction.INCREASE) && !actionRequest.equals(BalanceAction.SET) && !actionRequest.equals(BalanceAction.DIVIDE)) {
-            return ResponseEntity.badRequest().body("Wrong action");
+            return ResponseEntity.badRequest().body("Action not allowed");
         } else if (userService.getUserByname(username) == null) {
             return ResponseEntity.badRequest().body("Wrong username");
         } else if (valueDouble < 0 || valueDouble > Double.MAX_VALUE) {
-            return ResponseEntity.badRequest().body("Wrong valueDouble");
+            return ResponseEntity.badRequest().body("Wrong value");
         }
         Double money = userService.updateBalance(actionRequest, username, value);
 
