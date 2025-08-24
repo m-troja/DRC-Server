@@ -1,6 +1,9 @@
 package com.drc.server.controller;
 
-import com.drc.server.entity.Game;
+import com.drc.server.entity.*;
+import com.drc.server.exception.GameCommandNotSupportedException;
+import com.drc.server.exception.GameErrorException;
+import com.drc.server.exception.GameMinimumPlayerException;
 import com.drc.server.service.GameService;
 import com.drc.server.websocket.WebSocketSessionRegistry;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +36,7 @@ public class AdminRestController {
     private Integer MINIMUM_PLAYERS_QTY ;
 
     @GetMapping("/cmd")
-    public ResponseEntity<String> startGame(@RequestParam("cmd") String cmd) {
+    public GameStartedResponse startGame(@RequestParam("cmd") String cmd) {
 
         int playersConnected = webSocketSessionRegistry.getAllSessions().size() ;
         log.debug("cmd: {}", cmd);
@@ -44,48 +47,35 @@ public class AdminRestController {
             if (playersConnected >= MINIMUM_PLAYERS_QTY) {
                 game = gameService.startNewGame();
                 if (game == null) {
-                    log.debug("Server error! Please contact orzeu");
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(NO_PLAYERS);
+                    throw new GameErrorException("Server error! Please contact orzeu");
                 }
                 log.debug("Game started correctly {}", game);
-                return ResponseEntity.status(HttpStatus.OK)
-                        .body("GameId: " + game.getId());
+                return new GameStartedResponse(ResponseType.GAME_STARTED, game.getId());
+            } else {
+                throw new GameMinimumPlayerException("Minimum players qty not reached. Needed: " + MINIMUM_PLAYERS_QTY + ", actual: " + playersConnected);
             }
-            else {
-                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body("Minimum players qty not reached. Needed: " + MINIMUM_PLAYERS_QTY + ", actual: " + playersConnected);
-            }
-        }
-        else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Command not supported");
+        } else {
+            throw new GameCommandNotSupportedException("Command not supported");
         }
     }
 
     @GetMapping("/next-question")
-    public ResponseEntity<String> nextQuestion(@RequestParam("gameId") Integer gameId) {
-        if (gameService.allowNextQuestion(gameService.getGameById(gameId))) {
+    public Response nextQuestion(@RequestParam("gameId") Integer gameId) {
+        gameService.allowNextQuestion(gameService.getGameById(gameId));
+            Question question ;
             Game game = gameService.getGameById(gameId);
             log.debug("Game before next question: {}", game);
+
             game = gameService.triggerNextQuestion(game);
             log.debug("Game after next question: {}", game);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body("Next questionId: " + game.getCurrentQuestionId());
-        }
-        else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Error requesting new question. You ran out of questions! Game ended.");
-        }
+
+            return new Response(ResponseType.NEXT_QUESTION, "Next questionId: " + game.getCurrentQuestionId());
     }
 
     @GetMapping("/cheater")
-    public ResponseEntity<String> setCheater(@RequestParam("name") String name) {
-        try {
-            gameService.setCheater(name);
-        } catch (Exception e) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Error setting cheater for user: " + name);
-        }
-        return ResponseEntity.status(HttpStatus.OK)
-                .body("Cheater set: " + name);
+    public Response setCheater(@RequestParam("name") String name) {
+        gameService.setCheater(name);
+
+        return new Response(ResponseType.SET_CHEATER, "Cheater set: " + name);
     }
 }

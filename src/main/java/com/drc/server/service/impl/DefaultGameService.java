@@ -2,6 +2,10 @@ package com.drc.server.service.impl;
 
 import com.drc.server.entity.*;
 import com.drc.server.event.GameEventPublisher;
+import com.drc.server.exception.GameErrorException;
+import com.drc.server.exception.GameNotFoundException;
+import com.drc.server.exception.NoNextQuestionException;
+import com.drc.server.exception.SetCheaterException;
 import com.drc.server.persistence.GameRepo;
 import com.drc.server.service.*;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +35,7 @@ public class DefaultGameService implements GameService {
         game.setGameStatus(GameStatus.STARTED);
         game.setUsers(users);
         game.setPlayersQty(users.size());
+        game.setMaxQuestion(2 * users.size() - 2);
         save(game);
 
         for (User user: users){
@@ -53,8 +58,8 @@ public class DefaultGameService implements GameService {
         else {
             game.setGameStatus(GameStatus.END);
             save(game);
-            log.debug("Reached max question. Game ended. maxQuestion: {}, currentQuestion: {}", maxQuestion, currentQuestion);
-            return false;
+            log.debug("Reached max question! Game ended. maxQuestion: {}, currentQuestion: {}", maxQuestion, currentQuestion);
+            throw new NoNextQuestionException("Reached max question! Game ended. maxQuestion:" + maxQuestion );
         }
     }
 
@@ -91,13 +96,13 @@ public class DefaultGameService implements GameService {
             userService.update(user);
         } catch (Exception e) {
             log.debug("Error setting cheater by admin: {}" ,user);
-            throw new RuntimeException(e);
+            throw new SetCheaterException("Error setting cheater by admin for user " + user.getGame());
         }
         log.debug("Cheater set by admin: {}" ,user);
     }
 
     public Game getGameById(Integer id) {
-        Game game = gameRepo.findById(id).orElse(null);
+        Game game = gameRepo.findById(id).orElseThrow( () -> new GameNotFoundException("GameId " + id + " was not found"));
         log.debug("Find game by id {} : {} ", id, game);
         return game;
     }
@@ -127,4 +132,5 @@ public class DefaultGameService implements GameService {
             log.debug("Shutdown: Error removing all users and games");
         }
     }
+
 }

@@ -41,8 +41,6 @@ public class WebSocketEventListener {
             userService.update(user);
             notificationService.notifyAdminThatNewUserConnected(user);
         }
-        log.debug("Debug: ");
-        log.debug("user by stompSessionId: {} ", userService.getByStompSessionId(stompSessionId));
     }
 
     @EventListener

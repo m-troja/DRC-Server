@@ -1,0 +1,9 @@
+package com.drc.server.entity;
+
+public enum ResponseType {
+    OK,
+    SET_CHEATER,
+    GAME_STARTED,
+    NEXT_QUESTION,
+    BALANCE_ACTION_OK
+}

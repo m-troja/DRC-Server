@@ -47,7 +47,7 @@ public class WebSocketSessionRegistry {
     public void updateLastPingMap(Integer userId, Long newTime) {
         lastPingMap.put(userId, newTime);
         log.debug("Updated last ping for userId {}: {}", userId, newTime);
-        log.debug("Entire map lastPingUser ID=Time {}", lastPingMap);
+        log.debug("Map {userId=TimeOfLastPing} {}", lastPingMap);
     }
 
     // Automatically disconnect inactive users

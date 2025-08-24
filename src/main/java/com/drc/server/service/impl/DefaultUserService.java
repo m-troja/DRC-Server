@@ -4,6 +4,7 @@ import com.drc.server.entity.BalanceAction;
 import com.drc.server.entity.Game;
 import com.drc.server.entity.Role;
 import com.drc.server.entity.User;
+import com.drc.server.exception.UserNotFoundException;
 import com.drc.server.persistence.UserRepo;
 import com.drc.server.service.GameService;
 import com.drc.server.service.RoleService;
@@ -172,6 +173,6 @@ public class DefaultUserService implements UserService {
     }
 
     public User getUserById(Integer id) {
-        return userRepo.findById(id).orElse(null);
+        return userRepo.findById(id).orElseThrow( () -> new UserNotFoundException("GameId " + id + " was not found"));
     }
 }

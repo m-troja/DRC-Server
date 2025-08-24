@@ -28,9 +28,6 @@ public class UserRestController {
 
     @GetMapping("/users")
     public List<UserDto> getUsers(@RequestParam("gameId") Integer gameId) {
-        if (gameId.getClass() != Integer.class) {
-            log.debug("Error: gameId is not integer");
-        }
         if (gameId == 0) {
             return userCnv.convertUsersToUserDtos(userService.getUsersWithNoGame());
         }

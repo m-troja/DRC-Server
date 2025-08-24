@@ -30,7 +30,7 @@ public class PingWS {
 
         if (userService.getByStompSessionId(sessionId) != null) {
             User user = userService.getByStompSessionId(sessionId);
-            log.debug("Received ping from userId: {}, username: {}, message {}", user.getId(), user.getName() , pingMessage);
+            log.debug("Received ping from {}: {}", user.getName() , pingMessage.ping());
             sessionRegistry.updateLastPingMap(user.getId(), System.currentTimeMillis());
         } else {
             log.debug("Received ping from not-registered user! SessionId: {}", sessionId);
