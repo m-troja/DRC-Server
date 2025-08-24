@@ -1,5 +1,5 @@
 package com.drc.server.entity;
 
-public record ErrorMessage(ErrorMessageType type, String message, String timestamp)
+public record ErrorMessage(ErrorMessageType errorType, String message, String timestamp)
 {
 }
