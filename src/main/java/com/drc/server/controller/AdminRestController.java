@@ -5,6 +5,7 @@ import com.drc.server.exception.GameCommandNotSupportedException;
 import com.drc.server.exception.GameErrorException;
 import com.drc.server.exception.GameMinimumPlayerException;
 import com.drc.server.service.GameService;
+import com.drc.server.service.NotificationService;
 import com.drc.server.websocket.WebSocketSessionRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ public class AdminRestController {
 
     private final GameService gameService;
     private final WebSocketSessionRegistry webSocketSessionRegistry;
-
+    private final NotificationService notificationService;
     private static final String START_GAME = "START_GAME";
     private static final String NEXT_QUESTION = "NEXT_QUESTION";
     private static final String NOT_ENOUGH_PLAYERS = "Error: not enough players connected. Required: ";
@@ -76,5 +77,13 @@ public class AdminRestController {
         gameService.setCheater(name);
 
         return new Response(ResponseType.SET_CHEATER, "Cheater set: " + name);
+    }
+
+    @GetMapping("/kick")
+    public KickRequest kickUser(@RequestParam("name") String name) {
+        log.debug("Kick request for user {}", name);
+        KickRequest kr = new KickRequest(RequestType.COMMAND_DISCONNECT, name);
+        notificationService.sendKickRequest(kr);
+        return kr;
     }
 }

@@ -38,8 +38,7 @@ public class DefaultNotificationService implements NotificationService {
     private static final String clientAllAnswersEndpoint = "/queue/all-answers"; // Sends message for specific user
     private static final String clientAnswerEndpoint = "/queue/answer";
     private static final String adminEventEndpoint = "/queue/admin-event";
-    private static final String newUserConnectedMessage = "New user connected";
-    private static final String userDisconnectedMessage = "User disconnected";
+    private static final String kickEventEndpoint = "/queue/kick";
 
     public void sendQuestionToAllClients(Game game) {
         Question question = questionService.getQuestion(game.getCurrentQuestionId());
@@ -123,5 +122,10 @@ public class DefaultNotificationService implements NotificationService {
             messagingTemplate.convertAndSendToUser(user.getName(), clientAnswerEndpoint, answerDto);
             log.debug("Sent {} to {}, ws: {}", answerDto, user, clientAnswerEndpoint);
         }
+    }
+
+    public void sendKickRequest(KickRequest kickRequest) {
+        messagingTemplate.convertAndSendToUser(kickRequest.username(), kickEventEndpoint, kickRequest);
+        log.debug("Sent kick request: user {}, endpoint {}, {}", kickRequest.username(), kickEventEndpoint, kickRequest);
     }
 }
