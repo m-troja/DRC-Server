@@ -2,8 +2,10 @@ package com.drc.server.service.impl;
 
 import com.drc.server.dto.AnswerDto;
 import com.drc.server.dto.QuestionDto;
+import com.drc.server.dto.UserDto;
 import com.drc.server.dto.cnv.AnswerCnv;
 import com.drc.server.dto.cnv.QuestionCnv;
+import com.drc.server.dto.cnv.UserCnv;
 import com.drc.server.entity.*;
 import com.drc.server.persistence.QuestionRepo;
 import com.drc.server.service.*;
@@ -26,6 +28,7 @@ public class DefaultNotificationService implements NotificationService {
     private final QuestionService questionService;
     private final SimpMessagingTemplate messagingTemplate;
     private final AnswerCnv answerCnv;
+    private final UserCnv userCnv;
     private final QuestionCnv questionCnv;
     private final UserService userService;
     private final RoleService roleService;
@@ -68,36 +71,30 @@ public class DefaultNotificationService implements NotificationService {
 
     public void notifyAdminThatNewUserConnected(User user) {
         List<User> adminsWithNoGame = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_ADMIN), null);
-        HashMap<String, String> payload = new HashMap<>();
-        payload.put(newUserConnectedMessage, user.getName());
 
         if (adminsWithNoGame.isEmpty()) {
             log.debug("Skip informing admin about user connected, since no admin is connected");
         }
 
         for ( User admin : adminsWithNoGame) {
-            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, payload);
+            UserDto userDto = userCnv.convertUserToUserDto(user);
+            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, new NotificationToAdminAboutUser(ResponseType.USER_CONNECTED, userDto));
             log.debug("Informed admin about new user connected: {}, endpoint: {}", user, adminEventEndpoint);
-            log.debug("payload: {}",payload);
         }
-        payload.clear();;
     }
 
     public void notifyAdminThatUserDisconnected(User user) {
         List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_ADMIN), user.getGame());
-        HashMap<String, String> payload = new HashMap<>();
-        payload.put(userDisconnectedMessage, user.getName());
 
         if (admins.isEmpty()) {
             log.debug("Skip informing admin about user disconnected, since no admin is connected");
         }
 
         for ( User admin : admins) {
-            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, payload);
+            UserDto userDto = userCnv.convertUserToUserDto(user);
+            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, new NotificationToAdminAboutUser(ResponseType.USER_DISCONNECTED, userDto));
             log.debug("Informed admin about user disconnected: {}, endpoint: {}", user, adminEventEndpoint);
-            log.debug("payload: {}",payload);
         }
-        payload.clear();;
     }
 
     public void sendAnswerToUsers(AnswerRequest ar) {
