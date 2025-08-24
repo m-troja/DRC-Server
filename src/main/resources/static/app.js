@@ -75,6 +75,24 @@ function connect() {
                     showRequestedAnswer(answer);
 
             });
+
+            stompClient.subscribe('/user/' + from + '/queue/kick', function (messageOutput) {
+                try {
+                    const kickPayload = JSON.parse(messageOutput.body);
+
+                    alert("You were disconnected by the server.");
+
+                    stopAutoPing();
+
+                    stompClient.disconnect(() => {
+                        setConnected(false);
+                        console.log("Disconnected due to server kick.");
+                    });
+                } catch (e) {
+                    console.error("Failed to handle kick message:", e);
+                }
+            });
+
         }, function (error) {
             console.error('STOMP connection error:', error);
             alert("Connection error: Check console for details");
