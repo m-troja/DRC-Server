@@ -8,6 +8,7 @@ import com.drc.server.service.GameService;
 import com.drc.server.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,8 +27,14 @@ public class UserRestController {
     private UserCnv userCnv;
 
     @GetMapping("/users")
-    public List<UserDto> getUsers(@RequestParam("gameId") String gameId) {
-        Game game = gameService.getGameById(Integer.valueOf(gameId));
+    public List<UserDto> getUsers(@RequestParam("gameId") Integer gameId) {
+        if (gameId.getClass() != Integer.class) {
+            log.debug("Error: gameId is not integer");
+        }
+        if (gameId == 0) {
+            return userCnv.convertUsersToUserDtos(userService.getUsersWithNoGame());
+        }
+        Game game = gameService.getGameById(gameId);
         List<User> users = userService.getUsersByGame(game);
         List<UserDto> userDtos = userCnv.convertUsersToUserDtos(users);
         log.debug("Get users by game: {}, {}", users, game);
@@ -41,5 +48,4 @@ public class UserRestController {
         log.debug("Get users by name: {}, {}", user, name);
         return userDto;
     }
-
 }
