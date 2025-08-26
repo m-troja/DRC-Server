@@ -73,8 +73,8 @@ public class DefaultGameService implements GameService {
         // Check if cheater already in game
         for (User userInGame : allUsersInGame) {
             if (userInGame.getRole().equals(roleService.getRoleByName(RoleService.ROLE_CHEATER))) {
-                log.debug("Cheater already in game: {}", userInGame);
-                throw new SetCheaterException("Cheater already in game!");
+                log.debug("Cheater is already in the game: {}", userInGame);
+                throw new SetCheaterException("Cheater is already in the game: " + userInGame);
             }
         }
 

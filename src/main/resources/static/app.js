@@ -42,7 +42,7 @@ function connect() {
         return;
     }
     try {
-        const socket = new SockJS(`http://172.167.100.49:8081/game?username=${encodeURIComponent(from)}&role=${encodeURIComponent(role)}`);
+        const socket = new SockJS(`http://localhost:8080/game?username=${encodeURIComponent(from)}&role=${encodeURIComponent(role)}`);
         stompClient = Stomp.over(socket);
 
             stompClient.connect({}, function(frame) {
