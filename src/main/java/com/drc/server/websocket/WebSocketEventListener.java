@@ -2,8 +2,8 @@ package com.drc.server.websocket;
 
 import com.drc.server.entity.User;
 import com.drc.server.service.GameService;
-import com.drc.server.service.NotificationService;
 import com.drc.server.service.UserService;
+import com.drc.server.service.notification.AdminNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -18,7 +18,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 public class WebSocketEventListener {
     private final GameService gameService;
     private final UserService userService;
-    private final NotificationService notificationService;
+    private final AdminNotificationService adminNotificationService;
     private final WebSocketSessionRegistry webSocketSessionRegistry;
 
     @EventListener
@@ -39,7 +39,7 @@ public class WebSocketEventListener {
             webSocketSessionRegistry.register(stompSessionId, user.getId());
 
             userService.update(user);
-            notificationService.notifyAdminThatNewUserConnected(user);
+            adminNotificationService.notifyAdminThatNewUserConnected(user);
         }
     }
 
@@ -55,7 +55,7 @@ public class WebSocketEventListener {
             return;
         }
             log.debug("Disconnect user: {}", user);
-            notificationService.notifyAdminThatUserDisconnected(user);
+            adminNotificationService.notifyAdminThatUserDisconnected(user.getId());
             log.debug("notifyAdminThatUserDisconnected: {}", user);
             try {
                 userService.delete(user);
