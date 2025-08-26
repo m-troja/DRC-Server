@@ -1,5 +1,7 @@
 package com.drc.server.service.impl;
 
+import com.drc.server.dto.AnswerDto;
+import com.drc.server.dto.cnv.AnswerCnv;
 import com.drc.server.entity.*;
 import com.drc.server.event.GameEventPublisher;
 import com.drc.server.exception.GameErrorException;
@@ -22,8 +24,10 @@ public class DefaultGameService implements GameService {
 
     private final UserService userService;
     private final RoleService roleService;
+    private final AnswerService answerService;
     private final GameRepo gameRepo;
     private final GameEventPublisher gameEventPublisher;
+    private final AnswerCnv answerCnv;
 
     public Game startNewGame() {
         Game game = new Game();
@@ -125,12 +129,36 @@ public class DefaultGameService implements GameService {
 
     public void deleteAllGames() {
         try {
-            userService.deleteAllUsers();
             gameRepo.deleteAll();
-            log.debug("Shutdown: Removed all users and games");
+            log.debug("Removed all games");
         } catch (Exception e) {
-            log.debug("Shutdown: Error removing all users and games");
+            log.debug("Error removing all games");
         }
+    }
+
+    public void sendAnswerToUsers(AnswerRequest ar) {
+        Game game;
+        if (getGameById(ar.gameId()) == null) {
+            log.debug("Game is null, gameId = {}", ar.gameId());
+            return;
+        }
+        else {
+            game = getGameById(ar.gameId());
+        }
+
+        Answer answer;
+        if (answerService.getAnswerForQuestionByValueAndGameId(ar.value(), game.getCurrentQuestionId()) == null) {
+            log.debug("Answer is null, answer.value {}, gameId {}", ar.value(), game.getCurrentQuestionId());
+            return;
+        }
+        else {
+            answer = answerService.getAnswerForQuestionByValueAndGameId(ar.value(), game.getCurrentQuestionId());
+        }
+
+        AnswerDto answerDto = answerCnv.converAnswerToAnswerDto(answer);
+        List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_USER), game);
+        log.debug("sendAnswerToUsers sendAnswerToUsers: {}, {}, {}, {} ", game, answer, answerDto, users);
+
     }
 
 }

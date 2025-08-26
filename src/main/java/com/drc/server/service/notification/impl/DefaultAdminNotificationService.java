@@ -1,57 +1,38 @@
-package com.drc.server.service.impl;
+package com.drc.server.service.notification.impl;
 
 import com.drc.server.dto.AnswerDto;
-import com.drc.server.dto.QuestionDto;
 import com.drc.server.dto.UserDto;
 import com.drc.server.dto.cnv.AnswerCnv;
 import com.drc.server.dto.cnv.QuestionCnv;
 import com.drc.server.dto.cnv.UserCnv;
 import com.drc.server.entity.*;
-import com.drc.server.persistence.QuestionRepo;
 import com.drc.server.service.*;
-import lombok.AllArgsConstructor;
+import com.drc.server.service.notification.AdminNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DefaultNotificationService implements NotificationService {
-
+public class DefaultAdminNotificationService implements AdminNotificationService {
 
     private final AnswerService answerService;
-    private final QuestionService questionService;
     private final SimpMessagingTemplate messagingTemplate;
     private final AnswerCnv answerCnv;
     private final UserCnv userCnv;
-    private final QuestionCnv questionCnv;
     private final UserService userService;
     private final RoleService roleService;
-    private final GameService gameService;
 
-    private static final String clientQuestionEndpoint = "/client/question";
     private static final String clientAllAnswersEndpoint = "/queue/all-answers"; // Sends message for specific user
-    private static final String clientAnswerEndpoint = "/queue/answer";
     private static final String adminEventEndpoint = "/queue/admin-event";
-    private static final String kickEventEndpoint = "/queue/kick";
 
-    public void sendQuestionToAllClients(Game game) {
-        Question question = questionService.getQuestion(game.getCurrentQuestionId());
-        QuestionDto questionDto = questionCnv.convertQuestionToQuestionDto(question);
-        messagingTemplate.convertAndSend(clientQuestionEndpoint, questionDto);
-        log.debug("Sent question to {} : {}", clientQuestionEndpoint,  questionDto);
-    }
-
-    public void sendAllAnswersForAdminAndCheater(Game game) {
+    public void sendAllAnswersForAdmin(Game game) {
         List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_ADMIN), game);
-        List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_CHEATER),game);
         log.debug("Admins found: {}", admins);
-        log.debug("Cheaters found: {}", cheaters);
 
         List<Answer> answers = answerService.getAnswersForQuestionId(game.getCurrentQuestionId());
         List<AnswerDto> answerDtos = answerCnv.converAnswersToAnswerDtos(answers);
@@ -61,10 +42,6 @@ public class DefaultNotificationService implements NotificationService {
         for (User admin : admins) {
             messagingTemplate.convertAndSendToUser(admin.getName(), clientAllAnswersEndpoint, answerDtos );
             log.debug("Sent answers to {} : {}", admin, answerDtos);
-        }
-        for (User cheater : cheaters) {
-            messagingTemplate.convertAndSendToUser(cheater.getName(), clientAllAnswersEndpoint, answerDtos );
-            log.debug("Sent answers to {} : {}", cheater, answerDtos);
         }
     }
 
@@ -94,38 +71,5 @@ public class DefaultNotificationService implements NotificationService {
             messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, new NotificationToAdminAboutUser(ResponseType.USER_DISCONNECTED, userDto));
             log.debug("Informed admin about user disconnected: {}, endpoint: {}", user, adminEventEndpoint);
         }
-    }
-
-    public void sendAnswerToUsers(AnswerRequest ar) {
-        Game game;
-        if (gameService.getGameById(ar.gameId()) == null) {
-            log.debug("Game is null, gameId = {}", ar.gameId());
-            return;
-        }
-        else {
-            game = gameService.getGameById(ar.gameId());
-        }
-
-        Answer answer;
-        if (answerService.getAnswerForQuestionByValueAndGameId(ar.value(), game.getCurrentQuestionId()) == null) {
-            log.debug("Answer is null, answer.value {}, gameId {}", ar.value(), game.getCurrentQuestionId());
-            return;
-        }
-        else {
-            answer = answerService.getAnswerForQuestionByValueAndGameId(ar.value(), game.getCurrentQuestionId());
-        }
-
-        AnswerDto answerDto = answerCnv.converAnswerToAnswerDto(answer);
-        List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_USER), game);
-        log.debug("sendAnswerToUsers: {}, {}, {}, {} ", game, answer, answerDto, users);
-        for (User user : users) {
-            messagingTemplate.convertAndSendToUser(user.getName(), clientAnswerEndpoint, answerDto);
-            log.debug("Sent {} to {}, ws: {}", answerDto, user, clientAnswerEndpoint);
-        }
-    }
-
-    public void sendKickRequest(KickRequest kickRequest) {
-        messagingTemplate.convertAndSendToUser(kickRequest.username(), kickEventEndpoint, kickRequest);
-        log.debug("Sent kick request: user {}, endpoint {}, {}", kickRequest.username(), kickEventEndpoint, kickRequest);
     }
 }

@@ -7,5 +7,7 @@ public enum ResponseType {
     NEXT_QUESTION,
     BALANCE_ACTION_OK,
     USER_CONNECTED,
-    USER_DISCONNECTED
+    USER_DISCONNECTED,
+    CLEAN_SERVER,
+    KICK_OK
 }

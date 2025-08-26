@@ -4,14 +4,13 @@ import com.drc.server.entity.*;
 import com.drc.server.exception.GameCommandNotSupportedException;
 import com.drc.server.exception.GameErrorException;
 import com.drc.server.exception.GameMinimumPlayerException;
+import com.drc.server.service.CleanService;
 import com.drc.server.service.GameService;
-import com.drc.server.service.NotificationService;
+import com.drc.server.service.UserService;
 import com.drc.server.websocket.WebSocketSessionRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,7 +24,8 @@ public class AdminRestController {
 
     private final GameService gameService;
     private final WebSocketSessionRegistry webSocketSessionRegistry;
-    private final NotificationService notificationService;
+    private final UserService userService;
+    private final CleanService cleanService;
     private static final String START_GAME = "START_GAME";
     private static final String NEXT_QUESTION = "NEXT_QUESTION";
     private static final String NOT_ENOUGH_PLAYERS = "Error: not enough players connected. Required: ";
@@ -80,10 +80,15 @@ public class AdminRestController {
     }
 
     @GetMapping("/kick")
-    public KickRequest kickUser(@RequestParam("name") String name) {
+    public Response kickUser(@RequestParam("name") String name) {
         log.debug("Kick request for user {}", name);
-        KickRequest kr = new KickRequest(RequestType.COMMAND_DISCONNECT, name);
-        notificationService.sendKickRequest(kr);
-        return kr;
+        return new Response(ResponseType.KICK_OK, name);
+    }
+
+    @GetMapping("/clean-server")
+    public Response cleanServer() {
+        log.debug("Triggered clean-server");
+        cleanService.cleanServer();
+        return new Response(ResponseType.CLEAN_SERVER, "DONE");
     }
 }

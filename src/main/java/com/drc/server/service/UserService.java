@@ -10,9 +10,7 @@ import java.util.List;
 public interface UserService {
     public final String VALIDATE_OK = "OK";
 
-    String save(User user);
     void update(User user);
-    String validateNewUser(User user);
     void delete(User user);
     User getUserByHttpSesssionid(String httpSessionid);
     User getByStompSessionId(String stompSesssionid);
@@ -25,4 +23,5 @@ public interface UserService {
     Double updateBalance(BalanceAction action, String username, String value );
     void deleteAllUsers();
     User getUserById(Integer id);
+    void kick(String username);
 }

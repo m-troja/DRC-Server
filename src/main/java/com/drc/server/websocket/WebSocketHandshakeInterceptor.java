@@ -2,6 +2,7 @@ package com.drc.server.websocket;
 
 import com.drc.server.entity.User;
 import com.drc.server.service.RoleService;
+import com.drc.server.service.UserRegistrationService;
 import com.drc.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
 
-    private final UserService userService;
+    private final UserRegistrationService userRegistrationService;
     private final RoleService roleService;
 
     private static final String ROLE_ADMIN_VALUE = "admin";
@@ -73,7 +74,7 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
             }
 
             try {
-                String userValidationResult = userService.save(user);
+                String userValidationResult = userRegistrationService.save(user);
                 if (UserService.VALIDATE_OK.equals(userValidationResult)) {
                     log.debug("Registered: httpSessionId={}, username={}", httpSessionId, username);
                     return true;
