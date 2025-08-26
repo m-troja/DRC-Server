@@ -1,14 +1,12 @@
 package com.drc.server.service;
 
-import com.drc.server.entity.AnswerRequest;
 import com.drc.server.entity.Game;
-import com.drc.server.entity.User;
 
 public interface GameService {
 
     Game startNewGame();
-    void setCheater(Game game);
-    void setCheater(String username);
+    void setCheaterByAdmin(String username);
+    String setCheaterByServer(Integer gameId);
     void save(Game game);
     Game getGameById(Integer id);
     Game triggerNextQuestion(Game game);

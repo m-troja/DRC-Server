@@ -9,5 +9,6 @@ public enum ResponseType {
     USER_CONNECTED,
     USER_DISCONNECTED,
     CLEAN_SERVER,
-    KICK_OK
+    PLAYER_KICKED,
+    CHEATER_DRAWED
 }
