@@ -9,6 +9,7 @@ import com.drc.server.exception.NoNextQuestionException;
 import com.drc.server.exception.SetCheaterException;
 import com.drc.server.persistence.GameRepo;
 import com.drc.server.service.*;
+import com.drc.server.service.notification.UserNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class DefaultGameService implements GameService {
     private final GameRepo gameRepo;
     private final GameEventPublisher gameEventPublisher;
     private final AnswerCnv answerCnv;
+    private final UserNotificationService userNotificationService;
 
     public Game startNewGame() {
         Game game = new Game();
@@ -55,7 +57,7 @@ public class DefaultGameService implements GameService {
         Integer maxQuestion = game.getMaxQuestion();
         Integer currentQuestion = game.getCurrentQuestionId();
         if ( maxQuestion > currentQuestion) {
-            log.debug("ALlowed next question. maxQuestion: {}, currentQuestion: {}", maxQuestion, currentQuestion );
+            log.debug("Allowed next question. maxQuestion: {}, currentQuestion: {}", maxQuestion, currentQuestion );
             return true;
         }
         else {
@@ -138,27 +140,27 @@ public class DefaultGameService implements GameService {
         }
     }
 
-    public void sendAnswerToUsers(AnswerRequest ar) {
-        Game game;
-        if (getGameById(ar.gameId()) == null) {
-            log.debug("Game is null, gameId = {}", ar.gameId());
-            return;
-        }
-        else {
-            game = getGameById(ar.gameId());
+    public void sendAnswerToUsers(Double value, String username) {
+        User user = userService.getUserByname(username);
+        Game game ;
+        try {
+            game = user.getGame();
+        } catch (Exception e) {
+            throw new GameNotFoundException("Game for user " + username + " was not found");
         }
 
         Answer answer;
-        if (answerService.getAnswerForQuestionByValueAndGameId(ar.value(), game.getCurrentQuestionId()) == null) {
-            log.debug("Answer is null, answer.value {}, gameId {}", ar.value(), game.getCurrentQuestionId());
+        if (answerService.getAnswerForQuestionByValueAndGameId(value, game.getCurrentQuestionId()) == null) {
+            log.debug("Answer is null, answer.value {}, gameId {}", value, game.getCurrentQuestionId());
             return;
         }
         else {
-            answer = answerService.getAnswerForQuestionByValueAndGameId(ar.value(), game.getCurrentQuestionId());
+            answer = answerService.getAnswerForQuestionByValueAndGameId(value, game.getCurrentQuestionId());
         }
 
         AnswerDto answerDto = answerCnv.converAnswerToAnswerDto(answer);
         List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_USER), game);
         log.debug("sendAnswerToUsers sendAnswerToUsers: {}, {}, {}, {} ", game, answer, answerDto, users);
+        userNotificationService.sendAnswerToUsers(answerDto, users);
     }
 }

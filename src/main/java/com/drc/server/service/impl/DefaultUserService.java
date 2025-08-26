@@ -45,7 +45,12 @@ public class DefaultUserService implements UserService {
     }
 
     public User getUserByname(String name) {
-        User user = userRepo.findByname(name);
+        User user = null;
+        try {
+            user = userRepo.findByname(name);
+        } catch (Exception e) {
+            throw new UserNotFoundException("User " + name + " not found");
+        }
         log.debug("Find user by name: {} : {}", name, user);
         return user;
     }

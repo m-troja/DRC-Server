@@ -12,4 +12,5 @@ public interface GameService {
     Game triggerNextQuestion(Game game);
     void deleteAllGames();
     boolean allowNextQuestion(Game game);
+    void sendAnswerToUsers(Double value, String username);
 }
