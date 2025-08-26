@@ -13,6 +13,8 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import java.util.List;
+
 /*
  * STOMP Configuration
  */
@@ -38,7 +40,9 @@ public class StompConfiguration implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
 
         registry.addEndpoint("/game")
-                .setAllowedOrigins("http://localhost", "http://localhost:3000")
+//                .allowedOriginPatterns("http://192.168.*.*")
+//                .setAllowedOrigins("http://localhost", "http://localhost:3000")
+                .setAllowedOriginPatterns("*")
                 .addInterceptors(handshakeInterceptor)
                 .withSockJS();
     }
