@@ -4,12 +4,12 @@ import com.drc.server.dto.AnswerDto;
 import com.drc.server.dto.cnv.AnswerCnv;
 import com.drc.server.entity.*;
 import com.drc.server.event.GameEventPublisher;
-import com.drc.server.exception.GameErrorException;
 import com.drc.server.exception.GameNotFoundException;
 import com.drc.server.exception.NoNextQuestionException;
 import com.drc.server.exception.SetCheaterException;
 import com.drc.server.persistence.GameRepo;
 import com.drc.server.service.*;
+import com.drc.server.service.notification.UserNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +28,7 @@ public class DefaultGameService implements GameService {
     private final GameRepo gameRepo;
     private final GameEventPublisher gameEventPublisher;
     private final AnswerCnv answerCnv;
+    private final UserNotificationService userNotificationService;
 
     public Game startNewGame() {
         Game game = new Game();
@@ -46,8 +47,8 @@ public class DefaultGameService implements GameService {
             user.setGame(game);
             userService.update(user);
         }
-        setCheater(game);
-        log.debug("Start new {}  ", game);
+        String cheater = setCheaterByServer(game.getId());
+        log.debug("Start new {}", game);
         gameEventPublisher.publishNewGameStartedEvent(game);
         return game;
     }
@@ -56,7 +57,7 @@ public class DefaultGameService implements GameService {
         Integer maxQuestion = game.getMaxQuestion();
         Integer currentQuestion = game.getCurrentQuestionId();
         if ( maxQuestion > currentQuestion) {
-            log.debug("ALlowed next question. maxQuestion: {}, currentQuestion: {}", maxQuestion, currentQuestion );
+            log.debug("Allowed next question. maxQuestion: {}, currentQuestion: {}", maxQuestion, currentQuestion );
             return true;
         }
         else {
@@ -67,32 +68,35 @@ public class DefaultGameService implements GameService {
         }
     }
 
-    public void setCheater(Game game) {
+    public String setCheaterByServer(Integer gameId) {
+        Game game = getGameById(gameId);
         List<User> allUsersInGame = userService.getUsersByGame(game);
 
         // Check if cheater already in game
         for (User userInGame : allUsersInGame) {
             if (userInGame.getRole().equals(roleService.getRoleByName(RoleService.ROLE_CHEATER))) {
-                log.debug("Cheater already in game: {}", userInGame);
-                return;
+                log.debug("Cheater is already in the game: {}", userInGame);
+                throw new SetCheaterException("Cheater is already in the game: " + userInGame);
             }
         }
 
         List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_USER), game);
-
+        User cheater;
         if (!users.isEmpty()) {
             Random random = new Random();
-            User cheater = users.get(random.nextInt(users.size()));
+            cheater = users.get(random.nextInt(users.size()));
             cheater.setRole(roleService.getRoleByName(RoleService.ROLE_CHEATER));
             userService.update(cheater);
-            log.debug("Set cheater {} " , cheater);
+            log.debug("Set cheater by server: {}" , cheater);
+            return cheater.getName();
         }
         else {
             log.debug("No users connected - no cheater selected");
+            throw new SetCheaterException("No users connected - no cheater selected");
         }
     }
 
-    public void setCheater(String username) {
+    public void setCheaterByAdmin(String username) {
         User user = userService.getUserByname(username);
         user.setRole(roleService.getRoleByName(RoleService.ROLE_CHEATER));
 
@@ -136,29 +140,27 @@ public class DefaultGameService implements GameService {
         }
     }
 
-    public void sendAnswerToUsers(AnswerRequest ar) {
-        Game game;
-        if (getGameById(ar.gameId()) == null) {
-            log.debug("Game is null, gameId = {}", ar.gameId());
-            return;
-        }
-        else {
-            game = getGameById(ar.gameId());
+    public void sendAnswerToUsers(Double value, String username) {
+        User user = userService.getUserByname(username);
+        Game game ;
+        try {
+            game = user.getGame();
+        } catch (Exception e) {
+            throw new GameNotFoundException("Game for user " + username + " was not found");
         }
 
         Answer answer;
-        if (answerService.getAnswerForQuestionByValueAndGameId(ar.value(), game.getCurrentQuestionId()) == null) {
-            log.debug("Answer is null, answer.value {}, gameId {}", ar.value(), game.getCurrentQuestionId());
+        if (answerService.getAnswerForQuestionByValueAndGameId(value, game.getCurrentQuestionId()) == null) {
+            log.debug("Answer is null, answer.value {}, gameId {}", value, game.getCurrentQuestionId());
             return;
         }
         else {
-            answer = answerService.getAnswerForQuestionByValueAndGameId(ar.value(), game.getCurrentQuestionId());
+            answer = answerService.getAnswerForQuestionByValueAndGameId(value, game.getCurrentQuestionId());
         }
 
         AnswerDto answerDto = answerCnv.converAnswerToAnswerDto(answer);
         List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_USER), game);
         log.debug("sendAnswerToUsers sendAnswerToUsers: {}, {}, {}, {} ", game, answer, answerDto, users);
-
+        userNotificationService.sendAnswerToUsers(answerDto, users);
     }
-
 }

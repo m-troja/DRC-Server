@@ -6,9 +6,9 @@ import com.drc.server.exception.GameErrorException;
 import com.drc.server.exception.GameMinimumPlayerException;
 import com.drc.server.exception.UserNotFoundException;
 import com.drc.server.service.CleanService;
-import com.drc.server.service.DisconnectService;
 import com.drc.server.service.GameService;
 import com.drc.server.service.UserService;
+import com.drc.server.service.notification.UserNotificationService;
 import com.drc.server.websocket.WebSocketSessionRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +28,7 @@ public class AdminRestController {
     private final WebSocketSessionRegistry webSocketSessionRegistry;
     private final UserService userService;
     private final CleanService cleanService;
+    private final UserNotificationService userNotificationService;
     private static final String START_GAME = "START_GAME";
     private static final String NEXT_QUESTION = "NEXT_QUESTION";
     private static final String NOT_ENOUGH_PLAYERS = "Error: not enough players connected. Required: ";
@@ -76,11 +77,14 @@ public class AdminRestController {
 
     @GetMapping("/cheater")
     public Response setCheater(@RequestParam("name") String name) {
-        gameService.setCheater(name);
+        gameService.setCheaterByAdmin(name);
 
         return new Response(ResponseType.SET_CHEATER, "Cheater set: " + name);
     }
 
+    /*
+     * Kick cheater (kick player)
+     */
     @GetMapping("/kick")
     public Response kickUser(@RequestParam("name") String name) {
         log.debug("Kick request for user {}", name);
@@ -91,7 +95,7 @@ public class AdminRestController {
             throw new UserNotFoundException("User " + name + " was not found");
         }
         webSocketSessionRegistry.unregister(user.getId());
-        return new Response(ResponseType.KICK_OK, name);
+        return new Response(ResponseType.PLAYER_KICKED, name);
     }
 
     @GetMapping("/clean-server")
@@ -99,5 +103,19 @@ public class AdminRestController {
         log.debug("Triggered clean-server");
         cleanService.cleanServer();
         return new Response(ResponseType.CLEAN_SERVER, "DONE");
+    }
+
+    @GetMapping("/draw-cheater")
+    public Response respondCheater(@RequestParam("gameId") Integer gameId) {
+        log.debug("Triggered draw-cheater");
+        String cheater = gameService.setCheaterByServer(gameId);
+        return new Response(ResponseType.CHEATER_DRAWED, cheater );
+    }
+
+    @GetMapping("/correct-answer-response")
+    public Response processCorrectAnswerResponse(@RequestParam("value") Double value, @RequestParam("username") String username) {
+        log.debug("Triggered correct answer response");
+        gameService.sendAnswerToUsers(value, username);
+        return new Response(ResponseType.PROCESSED_CORRECT_ANSWER, "value: " + value + ", username: "+ username );
     }
 }

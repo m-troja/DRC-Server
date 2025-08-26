@@ -20,7 +20,5 @@ public interface UserRepo extends CrudRepository<User, Integer> {
     public List<User> findByGameIsNull();
     public List<User> findByRoleAndGame(Role role, Game game);
     public List<User> findByGame(Game game);
-//    public User findById(Integer id);
-
 }
 
