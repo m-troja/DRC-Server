@@ -1,7 +1,10 @@
 package com.drc.server.websocket;
 
 import com.drc.server.entity.User;
+import com.drc.server.service.DisconnectService;
 import com.drc.server.service.UserService;
+import com.drc.server.service.notification.AdminNotificationService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,37 +19,38 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 @Slf4j
 @Component
+@Getter
 public class WebSocketSessionRegistry {
 
-    private final Map<String, User> mapOfSessionIdAndUser = new ConcurrentHashMap<>();
     private final Map<Integer, Long> lastPingMap = new ConcurrentHashMap<>();
-    private final Map<String, User> sessions = new ConcurrentHashMap<>();
+    private final AdminNotificationService adminNotificationService;
     private final UserService userService;
-
-    @Lazy
-    @Autowired
-    WebSocketEventListener webSocketEventListener;
 
     @Value("${timeout.miliseconds}")
     private Long TIMEOUT_MILLIS; // 20 s
 
     public void register(String stompSessionId, Integer userId) {
         lastPingMap.put(userId, System.currentTimeMillis());
-        log.debug("Updated last ping for user {}: {}", userId, System.currentTimeMillis());
-
-        sessions.put(stompSessionId, userService.getUserById(userId));
-        log.debug("Put into sessions sessionId {},{}", stompSessionId, userService.getUserById(userId));
-        log.debug("Registered userId {}, time {}", userId, System.currentTimeMillis());
+        log.debug("Updated last ping for user {}: {}", userService.getUserById(userId).getName(), System.currentTimeMillis());
     }
 
-    public void unregister(String sessionId) {
-        log.debug("Unregister sessionId {}", sessionId);
-        sessions.remove(sessionId);
-    }
+    public void unregister(Integer userId) {
+        User user = userService.getUserById(userId);
+        log.debug("Unregistering user {}", user);
+        lastPingMap.remove(userId);
+        log.debug("Notifying admin about disconnecting: {}", user);
+        adminNotificationService.notifyAdminThatUserDisconnected(userId);
+        log.debug("Trying to delete {}", user);
+        try {
+            userService.delete(user);
+        } catch (Exception e) {
+            log.debug("Error deleting user from DB: {}", user);
+        }
+        log.debug("Deleted user from DB: {}", user);}
 
     public void updateLastPingMap(Integer userId, Long newTime) {
         lastPingMap.put(userId, newTime);
-        log.debug("Updated last ping for userId {}: {}", userId, newTime);
+        log.debug("Updated last ping for {}: {}", userService.getUserById(userId).getName(), newTime);
         log.debug("Map {userId=TimeOfLastPing} {}", lastPingMap);
     }
 
@@ -54,7 +58,7 @@ public class WebSocketSessionRegistry {
     @Scheduled(fixedDelay = 5000)
     public void disconnectInactiveUsers() {
 
-        if (!getAllSessions().isEmpty())
+        if (!getLastPingMap().isEmpty())
         {
             log.debug("Checking inactive users...");
 
@@ -62,28 +66,10 @@ public class WebSocketSessionRegistry {
             for ( Integer userId : lastPingMap.keySet()) {
                 if (now - lastPingMap.get(userId) > TIMEOUT_MILLIS) {
                     log.debug("Found inactive userId: {}", userId);
-
-                    log.debug("Remove userId {} from lastPingMap", userId);
-                    lastPingMap.remove(userId);
-                    log.debug("Call Unregister with stompSessionId {}", userService.getUserById(userId).getStompSessionId());
-                    unregister(userService.getUserById(userId).getStompSessionId());
-                    log.debug("Go to webSocketEventListener.disconnectUser({})", userService.getUserById(userId));
-                    webSocketEventListener.disconnectUser(userService.getUserById(userId));
+                    unregister(userId);
                 }
             }
         }
     }
-
-    public Map<String, User> getAllSessions() {
-        return sessions;
-    }
-
-    public Long getLastPingOfUser(Integer userId) {
-        return lastPingMap.get(userId);
-    }
-    public User getUserFromSessionBySessionId(String session) {
-        return sessions.get(session);
-    }
-
 }
 

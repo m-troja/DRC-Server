@@ -59,17 +59,18 @@ public class DefaultAdminNotificationService implements AdminNotificationService
         }
     }
 
-    public void notifyAdminThatUserDisconnected(User user) {
-        List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_ADMIN), user.getGame());
+    public void notifyAdminThatUserDisconnected(Integer userId) {
+        User userDisconnected = userService.getUserById(userId);
+        List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_ADMIN), userDisconnected.getGame());
 
         if (admins.isEmpty()) {
             log.debug("Skip informing admin about user disconnected, since no admin is connected");
         }
 
         for ( User admin : admins) {
-            UserDto userDto = userCnv.convertUserToUserDto(user);
+            UserDto userDto = userCnv.convertUserToUserDto(userDisconnected);
             messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, new NotificationToAdminAboutUser(ResponseType.USER_DISCONNECTED, userDto));
-            log.debug("Informed admin about user disconnected: {}, endpoint: {}", user, adminEventEndpoint);
+            log.debug("Informed admin about user disconnected: {}, endpoint: {}", userDisconnected, adminEventEndpoint);
         }
     }
 }

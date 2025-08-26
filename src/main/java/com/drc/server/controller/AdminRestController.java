@@ -4,7 +4,9 @@ import com.drc.server.entity.*;
 import com.drc.server.exception.GameCommandNotSupportedException;
 import com.drc.server.exception.GameErrorException;
 import com.drc.server.exception.GameMinimumPlayerException;
+import com.drc.server.exception.UserNotFoundException;
 import com.drc.server.service.CleanService;
+import com.drc.server.service.DisconnectService;
 import com.drc.server.service.GameService;
 import com.drc.server.service.UserService;
 import com.drc.server.websocket.WebSocketSessionRegistry;
@@ -38,7 +40,7 @@ public class AdminRestController {
     @GetMapping("/cmd")
     public GameStartedResponse startGame(@RequestParam("cmd") String cmd) {
 
-        int playersConnected = webSocketSessionRegistry.getAllSessions().size() ;
+        int playersConnected = webSocketSessionRegistry.getLastPingMap().size() ;
         log.debug("cmd: {}", cmd);
 
         Game game;
@@ -82,6 +84,13 @@ public class AdminRestController {
     @GetMapping("/kick")
     public Response kickUser(@RequestParam("name") String name) {
         log.debug("Kick request for user {}", name);
+        User user;
+        try {
+            user = userService.getUserByname(name);
+        } catch (Exception e) {
+            throw new UserNotFoundException("User " + name + " was not found");
+        }
+        webSocketSessionRegistry.unregister(user.getId());
         return new Response(ResponseType.KICK_OK, name);
     }
 

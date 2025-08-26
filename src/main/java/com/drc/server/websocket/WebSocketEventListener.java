@@ -55,7 +55,7 @@ public class WebSocketEventListener {
             return;
         }
             log.debug("Disconnect user: {}", user);
-            adminNotificationService.notifyAdminThatUserDisconnected(user);
+            adminNotificationService.notifyAdminThatUserDisconnected(user.getId());
             log.debug("notifyAdminThatUserDisconnected: {}", user);
             try {
                 userService.delete(user);

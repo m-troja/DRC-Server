@@ -110,9 +110,9 @@ public class DefaultUserService implements UserService {
     public void deleteAllUsers() {
         try {
             userRepo.deleteAll();
-            log.debug("Deleted all users");
+            log.debug("Removed all users");
         } catch (Exception e) {
-            log.debug("Error deleting all users");
+            log.debug("Error removing all users");
             throw new RuntimeException(e);
         }
     }
