@@ -1,9 +1,8 @@
 package com.drc.server.service.notification.impl;
 
 import com.drc.server.dto.AnswerDto;
+import com.drc.server.dto.CorrectAnswerResponseDto;
 import com.drc.server.dto.cnv.AnswerCnv;
-import com.drc.server.dto.cnv.QuestionCnv;
-import com.drc.server.dto.cnv.UserCnv;
 import com.drc.server.entity.*;
 import com.drc.server.service.*;
 import com.drc.server.service.notification.CheaterNotificationService;
@@ -27,19 +26,28 @@ public class DefaultCheaterNotificationService implements CheaterNotificationSer
     private final RoleService roleService;
 
     private static final String clientAllAnswersEndpoint = "/queue/all-answers"; // Sends message for specific user
+    private static final String clientAnswerEndpoint = "/queue/answer";
 
 
     public void sendAllAnswersForCheater(Game game) {
         List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_CHEATER),game);
 
         List<Answer> answers = answerService.getAnswersForQuestionId(game.getCurrentQuestionId());
-        List<AnswerDto> answerDtos = answerCnv.converAnswersToAnswerDtos(answers);
+        List<AnswerDto> answerDtos = answerCnv.convertAnswersToAnswerDtos(answers);
         log.debug("answers found: {}", answers);
         log.debug("answerDtos found: {}", answerDtos);
 
         for (User cheater : cheaters) {
             messagingTemplate.convertAndSendToUser(cheater.getName(), clientAllAnswersEndpoint, answerDtos );
             log.debug("Sent answers to {} : {}", cheater, answerDtos);
+        }
+    }
+
+    public void sendCorrectAnswerResponseToCheaters(CorrectAnswerResponseDto answerDto, List<User> users) {
+        log.debug("sendCorrectAnswerResponseToCheaters: {}, {} ", answerDto, users);
+        for (User user : users) {
+            messagingTemplate.convertAndSendToUser(user.getName(), clientAnswerEndpoint, answerDto);
+            log.debug("Sent {} to {}, ws: {}", answerDto, user, clientAnswerEndpoint);
         }
     }
 }

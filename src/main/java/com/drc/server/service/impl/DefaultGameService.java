@@ -1,6 +1,7 @@
 package com.drc.server.service.impl;
 
 import com.drc.server.dto.AnswerDto;
+import com.drc.server.dto.CorrectAnswerResponseDto;
 import com.drc.server.dto.cnv.AnswerCnv;
 import com.drc.server.entity.*;
 import com.drc.server.event.GameEventPublisher;
@@ -9,6 +10,8 @@ import com.drc.server.exception.NoNextQuestionException;
 import com.drc.server.exception.SetCheaterException;
 import com.drc.server.persistence.GameRepo;
 import com.drc.server.service.*;
+import com.drc.server.service.notification.AdminNotificationService;
+import com.drc.server.service.notification.CheaterNotificationService;
 import com.drc.server.service.notification.UserNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +19,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Random;
+
+import static com.drc.server.service.RoleService.ROLE_ADMIN;
+import static com.drc.server.service.RoleService.ROLE_USER;
+import static com.drc.server.service.RoleService.ROLE_CHEATER;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -29,6 +36,9 @@ public class DefaultGameService implements GameService {
     private final GameEventPublisher gameEventPublisher;
     private final AnswerCnv answerCnv;
     private final UserNotificationService userNotificationService;
+    private final AdminNotificationService adminNotificationService;
+    private final CheaterNotificationService cheaterNotificationService;
+
 
     public Game startNewGame() {
         Game game = new Game();
@@ -158,9 +168,13 @@ public class DefaultGameService implements GameService {
             answer = answerService.getAnswerForQuestionByValueAndGameId(value, game.getCurrentQuestionId());
         }
 
-        AnswerDto answerDto = answerCnv.converAnswerToAnswerDto(answer);
-        List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_USER), game);
+        CorrectAnswerResponseDto answerDto = answerCnv.convertAnswerToCorrectAnswerResponseDto(username, answer);
+        List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_USER), game);
+        List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_CHEATER), game);
+        List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_ADMIN), game);
         log.debug("sendAnswerToUsers sendAnswerToUsers: {}, {}, {}, {} ", game, answer, answerDto, users);
-        userNotificationService.sendAnswerToUsers(answerDto, users);
+        userNotificationService.sendCorrectAnswerResponseToUsers(answerDto, users);
+        cheaterNotificationService.sendCorrectAnswerResponseToCheaters(answerDto, cheaters);
+        adminNotificationService.sendCorrectAnswerResponseToAdmins(answerDto, admins);
     }
 }

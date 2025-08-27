@@ -1,9 +1,9 @@
 package com.drc.server.service.notification.impl;
 
 import com.drc.server.dto.AnswerDto;
+import com.drc.server.dto.CorrectAnswerResponseDto;
 import com.drc.server.dto.UserDto;
 import com.drc.server.dto.cnv.AnswerCnv;
-import com.drc.server.dto.cnv.QuestionCnv;
 import com.drc.server.dto.cnv.UserCnv;
 import com.drc.server.entity.*;
 import com.drc.server.service.*;
@@ -29,13 +29,14 @@ public class DefaultAdminNotificationService implements AdminNotificationService
 
     private static final String clientAllAnswersEndpoint = "/queue/all-answers"; // Sends message for specific user
     private static final String adminEventEndpoint = "/queue/admin-event";
+    private static final String clientAnswerEndpoint = "/queue/answer";
 
     public void sendAllAnswersForAdmin(Game game) {
         List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_ADMIN), game);
         log.debug("Admins found: {}", admins);
 
         List<Answer> answers = answerService.getAnswersForQuestionId(game.getCurrentQuestionId());
-        List<AnswerDto> answerDtos = answerCnv.converAnswersToAnswerDtos(answers);
+        List<AnswerDto> answerDtos = answerCnv.convertAnswersToAnswerDtos(answers);
         log.debug("answers found: {}", answers);
         log.debug("answerDtos found: {}", answerDtos);
 
@@ -73,4 +74,13 @@ public class DefaultAdminNotificationService implements AdminNotificationService
             log.debug("Informed admin about user disconnected: {}, endpoint: {}", userDisconnected, adminEventEndpoint);
         }
     }
+
+    public void sendCorrectAnswerResponseToAdmins(CorrectAnswerResponseDto answerDto, List<User> users) {
+        log.debug("sendCorrectAnswerResponseToAdmins: {}, {} ", answerDto, users);
+        for (User user : users) {
+            messagingTemplate.convertAndSendToUser(user.getName(), clientAnswerEndpoint, answerDto);
+            log.debug("Sent {} to {}, ws: {}", answerDto, user, clientAnswerEndpoint);
+        }
+    }
+
 }

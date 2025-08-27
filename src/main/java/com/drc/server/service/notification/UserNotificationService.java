@@ -1,6 +1,7 @@
 package com.drc.server.service.notification;
 
 import com.drc.server.dto.AnswerDto;
+import com.drc.server.dto.CorrectAnswerResponseDto;
 import com.drc.server.dto.QuestionDto;
 import com.drc.server.entity.*;
 
@@ -10,5 +11,6 @@ public interface UserNotificationService {
 
     void sendQuestionToAllClients(QuestionDto questionDto);
     void sendAnswerToUsers(AnswerDto answerDto, List<User> users);
+    void sendCorrectAnswerResponseToUsers(CorrectAnswerResponseDto answerDto, List<User> users);
     void sendKickRequest(KickRequest kickRequest);
 }
