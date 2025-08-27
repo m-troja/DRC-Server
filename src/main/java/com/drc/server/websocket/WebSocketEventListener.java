@@ -46,7 +46,7 @@ public class WebSocketEventListener {
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         String stompSessionId = event.getSessionId();
-        log.debug("SessionDisconnectEvent: stompSessionId: {}", stompSessionId);
+        log.debug("SessionDisconnectEvent: {}", userService.getByStompSessionId(stompSessionId));
     }
 
     public void disconnectUser(User user) {

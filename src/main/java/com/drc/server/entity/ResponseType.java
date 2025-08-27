@@ -12,5 +12,6 @@ public enum ResponseType {
     PLAYER_KICKED,
     CHEATER_DRAWED,
     PROCESSED_CORRECT_ANSWER,
-    END_ROUND_OK
+    END_ROUND_OK,
+    SHOOT_PLAYER
 }

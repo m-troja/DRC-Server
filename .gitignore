@@ -4,7 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 src/main/resources/secrets.properties
-env_prod.env
+prod.env
 
 ### STS ###
 .apt_generated
