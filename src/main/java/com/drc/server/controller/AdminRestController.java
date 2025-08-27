@@ -119,4 +119,11 @@ public class AdminRestController {
         gameService.sendAnswerToUsers(value, username);
         return new Response(ResponseType.PROCESSED_CORRECT_ANSWER, "value: " + value + ", username: "+ username );
     }
+
+    @GetMapping("/end-round")
+    public Response endRound(@RequestParam("gameId") Integer gameId) {
+        log.debug("Triggered end-round of gameId {}", gameId);
+        gameService.triggerEndRound(gameId);
+        return new Response(ResponseType.END_ROUND_OK, "end-round of gameId " + gameId);
+    }
 }
