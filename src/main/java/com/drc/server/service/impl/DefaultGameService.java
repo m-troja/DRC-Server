@@ -163,4 +163,15 @@ public class DefaultGameService implements GameService {
         log.debug("sendAnswerToUsers sendAnswerToUsers: {}, {}, {}, {} ", game, answer, answerDto, users);
         userNotificationService.sendAnswerToUsers(answerDto, users);
     }
+
+    public void triggerEndRound(Integer gameId) {
+        Game game = getGameById(gameId);
+        List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_USER), game);
+        Integer questionId = game.getCurrentQuestionId();
+        List<Answer> answers = answerService.getAnswersForQuestionId(questionId);
+        List<AnswerDto> answerDtos = answerCnv.converAnswersToAnswerDtos(answers);
+        userNotificationService.sendAllAnswersToUsersInGame(answerDtos, users);
+        log.debug("Data to end-round: {}, {}, {}, {}", game,users, answers, answerDtos);
+    }
+
 }

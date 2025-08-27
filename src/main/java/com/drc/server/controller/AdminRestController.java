@@ -95,6 +95,7 @@ public class AdminRestController {
             throw new UserNotFoundException("User " + name + " was not found");
         }
         webSocketSessionRegistry.unregister(user.getId());
+        userNotificationService.sendKickRequest(new KickRequest(RequestType.COMMAND_DISCONNECT, name));
         return new Response(ResponseType.PLAYER_KICKED, name);
     }
 
@@ -117,5 +118,12 @@ public class AdminRestController {
         log.debug("Triggered correct answer response");
         gameService.sendAnswerToUsers(value, username);
         return new Response(ResponseType.PROCESSED_CORRECT_ANSWER, "value: " + value + ", username: "+ username );
+    }
+
+    @GetMapping("/end-round")
+    public Response endRound(@RequestParam("gameId") Integer gameId) {
+        log.debug("Triggered end-round of gameId {}", gameId);
+        gameService.triggerEndRound(gameId);
+        return new Response(ResponseType.END_ROUND_OK, "end-round of gameId " + gameId);
     }
 }
