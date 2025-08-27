@@ -95,6 +95,7 @@ public class AdminRestController {
             throw new UserNotFoundException("User " + name + " was not found");
         }
         webSocketSessionRegistry.unregister(user.getId());
+        userNotificationService.sendKickRequest(new KickRequest(RequestType.COMMAND_DISCONNECT, name));
         return new Response(ResponseType.PLAYER_KICKED, name);
     }
 
