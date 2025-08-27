@@ -13,4 +13,5 @@ public interface UserNotificationService {
     void sendAnswerToUsers(AnswerDto answerDto, List<User> users);
     void sendCorrectAnswerResponseToUsers(CorrectAnswerResponseDto answerDto, List<User> users);
     void sendKickRequest(KickRequest kickRequest);
+    void sendAllAnswersToUsersInGame(List<AnswerDto> answers, List<User> users);
 }
