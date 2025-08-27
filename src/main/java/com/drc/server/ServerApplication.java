@@ -8,8 +8,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 
 @PropertySources({
-        @PropertySource("classpath:application.properties"),
-        @PropertySource("classpath:secrets.properties")
+        @PropertySource("classpath:application.properties")
 })
 @SpringBootApplication
 public class ServerApplication {
