@@ -15,4 +15,5 @@ public enum BalanceAction {
             throw new BalanceActionException("Invalid action: " + action + ". Must be one of: DECREASE, INCREASE, SET, DIVIDE.");
         }
     }
+
 }
