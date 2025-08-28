@@ -10,7 +10,6 @@ import java.util.List;
 public interface UserNotificationService {
 
     void sendQuestionToAllClients(QuestionDto questionDto);
-    void sendAnswerToUsers(AnswerDto answerDto, List<User> users);
     void sendCorrectAnswerResponseToUsers(CorrectAnswerResponseDto answerDto, List<User> users);
     void sendKickRequest(KickRequest kickRequest);
     void sendAllAnswersToUsersInGame(List<AnswerDto> answers, List<User> users);

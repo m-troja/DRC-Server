@@ -4,8 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 src/main/resources/secrets.properties
-env_prod.env
-
+prod.env
+release.properties
 ### STS ###
 .apt_generated
 .classpath

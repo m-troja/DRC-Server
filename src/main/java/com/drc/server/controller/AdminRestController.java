@@ -5,6 +5,7 @@ import com.drc.server.exception.GameCommandNotSupportedException;
 import com.drc.server.exception.GameErrorException;
 import com.drc.server.exception.GameMinimumPlayerException;
 import com.drc.server.exception.UserNotFoundException;
+import com.drc.server.service.BalanceService;
 import com.drc.server.service.CleanService;
 import com.drc.server.service.GameService;
 import com.drc.server.service.UserService;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminRestController {
 
     private final GameService gameService;
+    private final BalanceService balanceService;
     private final WebSocketSessionRegistry webSocketSessionRegistry;
     private final UserService userService;
     private final CleanService cleanService;
@@ -117,6 +119,7 @@ public class AdminRestController {
     public Response processCorrectAnswerResponse(@RequestParam("value") Double value, @RequestParam("username") String username) {
         log.debug("Triggered correct answer response");
         gameService.sendAnswerToUsers(value, username);
+        balanceService.increaseBalanceOfUser(value, username);
         return new Response(ResponseType.PROCESSED_CORRECT_ANSWER, "value: " + value + ", username: "+ username );
     }
 

@@ -87,31 +87,6 @@ public class DefaultUserService implements UserService {
         return users;
     }
 
-    public Double updateBalance(BalanceAction actionRequest, String username, String value) {
-
-        Double valueDouble = Double.valueOf(value);
-
-        User user = getUserByname(username);
-        Double userMoney = user.getMoney();
-
-        if (actionRequest.equals(BalanceAction.INCREASE)) {
-            userMoney += valueDouble;
-            log.debug("Money of {} was increased by {} ", user, valueDouble);
-        } else if (actionRequest.equals(BalanceAction.DECREASE)) {
-            userMoney -= valueDouble;
-            log.debug("Money of {} was decreased by {} ", user, valueDouble);
-        } else if (actionRequest.equals(BalanceAction.SET)) {
-            userMoney = valueDouble;
-            log.debug("Money of {} was set to {} ", user, valueDouble);
-        } else if (actionRequest.equals(BalanceAction.DIVIDE)) {
-            userMoney = userMoney / valueDouble;
-            log.debug("Money of {} was divided by {} ", user, valueDouble);
-        }
-        user.setMoney(userMoney);
-        update(user);
-        return userMoney;
-    }
-
     public void deleteAllUsers() {
         try {
             userRepo.deleteAll();

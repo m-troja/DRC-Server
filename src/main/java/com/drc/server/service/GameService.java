@@ -23,4 +23,7 @@ public interface GameService {
     void sendAnswerToUsers(Double value, String username);
 
     void triggerEndRound(Integer gameId);
+
+    void shootPlayer(String username);
+
 }

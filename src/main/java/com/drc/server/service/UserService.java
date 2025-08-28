@@ -20,7 +20,6 @@ public interface UserService {
     List<User> getUsersWithNoGame();
     List<User> getUsersByRoleAndGame(Role role, Game game);
     List<User> getUsersByGame(Game game);
-    Double updateBalance(BalanceAction action, String username, String value );
     void deleteAllUsers();
     User getUserById(Integer id);
     void kick(String username);

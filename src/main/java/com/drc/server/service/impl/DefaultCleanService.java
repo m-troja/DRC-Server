@@ -26,5 +26,6 @@ public class DefaultCleanService implements CleanService {
     public void cleanServer() {
         userService.deleteAllUsers();
         gameService.deleteAllGames();
+        webSocketSessionRegistry.getLastPingMap().clear();
     }
 }

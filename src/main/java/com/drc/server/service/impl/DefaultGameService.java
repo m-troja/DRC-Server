@@ -2,12 +2,15 @@ package com.drc.server.service.impl;
 
 import com.drc.server.dto.AnswerDto;
 import com.drc.server.dto.CorrectAnswerResponseDto;
+import com.drc.server.dto.UserDto;
 import com.drc.server.dto.cnv.AnswerCnv;
+import com.drc.server.dto.cnv.UserCnv;
 import com.drc.server.entity.*;
 import com.drc.server.event.GameEventPublisher;
 import com.drc.server.exception.GameNotFoundException;
 import com.drc.server.exception.NoNextQuestionException;
 import com.drc.server.exception.SetCheaterException;
+import com.drc.server.exception.UserNotFoundException;
 import com.drc.server.persistence.GameRepo;
 import com.drc.server.service.*;
 import com.drc.server.service.notification.AdminNotificationService;
@@ -35,6 +38,7 @@ public class DefaultGameService implements GameService {
     private final GameRepo gameRepo;
     private final GameEventPublisher gameEventPublisher;
     private final AnswerCnv answerCnv;
+    private final UserCnv userCnv;
     private final UserNotificationService userNotificationService;
     private final AdminNotificationService adminNotificationService;
     private final CheaterNotificationService cheaterNotificationService;
@@ -183,9 +187,26 @@ public class DefaultGameService implements GameService {
         List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_USER), game);
         Integer questionId = game.getCurrentQuestionId();
         List<Answer> answers = answerService.getAnswersForQuestionId(questionId);
-        List<AnswerDto> answerDtos = answerCnv.converAnswersToAnswerDtos(answers);
+        List<AnswerDto> answerDtos = answerCnv.convertAnswersToAnswerDtos(answers);
         userNotificationService.sendAllAnswersToUsersInGame(answerDtos, users);
         log.debug("Data to end-round: {}, {}, {}, {}", game,users, answers, answerDtos);
     }
 
+    public void shootPlayer(String username) {
+        User user;
+        try {
+             user = userService.getUserByname(username);
+        } catch (Exception e) {
+            throw new UserNotFoundException("User " + username + " was not found");
+        }
+        Game game = null;
+        try {
+            game = user.getGame();
+        } catch (Exception e) {
+            throw new GameNotFoundException("Game not found for user " + username);
+        }
+        List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_ADMIN), game);
+        UserDto userDto = userCnv.convertUserToUserDto(user);
+        adminNotificationService.notifyAdminAboutShootPlayer(userDto, admins);
+    }
 }

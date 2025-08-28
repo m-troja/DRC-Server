@@ -70,7 +70,7 @@ public class DefaultAdminNotificationService implements AdminNotificationService
 
         for ( User admin : admins) {
             UserDto userDto = userCnv.convertUserToUserDto(userDisconnected);
-            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, new NotificationToAdminAboutUser(ResponseType.USER_DISCONNECTED, userDto));
+            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, new NotificationToAdminAboutUser(ResponseType.USER_DISCONNECTED, userDto) );
             log.debug("Informed admin about user disconnected: {}, endpoint: {}", userDisconnected, adminEventEndpoint);
         }
     }
@@ -83,4 +83,11 @@ public class DefaultAdminNotificationService implements AdminNotificationService
         }
     }
 
+    public void notifyAdminAboutShootPlayer(UserDto userDto, List<User> admins) {
+        log.debug("notifyAdminAboutShootPlayer: {}, {} ", userDto);
+        for (User admin : admins) {
+            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, new ShootPlayerNotification(ResponseType.SHOOT_PLAYER, userDto) );
+            log.debug("Sent {} to {}, ws: {}", userDto, admin, adminEventEndpoint);
+        }
+    }
 }

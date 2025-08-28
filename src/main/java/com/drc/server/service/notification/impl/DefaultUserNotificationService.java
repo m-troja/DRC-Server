@@ -29,25 +29,25 @@ public class DefaultUserNotificationService implements UserNotificationService {
         log.debug("Sent question to {} : {}", clientQuestionEndpoint,  questionDto);
     }
 
-    public void sendAnswerToUsers(AnswerDto answerDto, List<User> users) {
-         log.debug("sendAnswerToUsers: {}, {} ", answerDto, users);
-        for (User user : users) {
-            messagingTemplate.convertAndSendToUser(user.getName(), queueAnswerEndpoint, answerDto);
-            log.debug("Sent {} to {}, ws: {}", answerDto, user, queueAnswerEndpoint);
-        }
-    }
-
     public void sendKickRequest(KickRequest kickRequest) {
         messagingTemplate.convertAndSendToUser(kickRequest.username(), kickEventEndpoint, kickRequest);
         log.debug("Sent kick request: user {}, endpoint {}, {}", kickRequest.username(), kickEventEndpoint, kickRequest);
     }
 
+    @Override
+    public void sendAllAnswersToUsersInGame(List<AnswerDto> answers, List<User> users) {
+        log.debug("sendAllAnswersToUsersInGame: {}, {} ", answers, users);
+        for (User user : users) {
+            messagingTemplate.convertAndSendToUser(user.getName(), queueAnswersEndpoint, answers);
+            log.debug("Sent {} to {}, ws: {}", answers, user, queueAnswersEndpoint);
+        }
+    }
+
     public void sendCorrectAnswerResponseToUsers(CorrectAnswerResponseDto answerDto, List<User> users) {
         log.debug("sendCorrectAnswerResponseToUsers: {}, {} ", answerDto, users);
         for (User user : users) {
-            messagingTemplate.convertAndSendToUser(user.getName(), clientAnswerEndpoint, answerDto);
-            log.debug("Sent {} to {}, ws: {}", answerDto, user, clientAnswerEndpoint);
-
+            messagingTemplate.convertAndSendToUser(user.getName(), queueAnswerEndpoint, answerDto);
+            log.debug("Sent {} to {}, ws: {}", answerDto, user, queueAnswerEndpoint);
         }
     }
 }
