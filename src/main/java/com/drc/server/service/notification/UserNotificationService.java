@@ -15,4 +15,5 @@ public interface UserNotificationService {
     void sendKickRequest(KickRequest kickRequest);
     void sendAllAnswersToUsersInGame(List<AnswerDto> answers, List<User> users);
     void updateUsersObjects(List<UserDto> userDtos, List<User> users);
+    void tellPlayerIfHeIsCheater(Response response,  List<User> users);
 }

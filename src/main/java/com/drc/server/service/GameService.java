@@ -27,4 +27,6 @@ public interface GameService {
     void shootPlayer(String username);
 
     void broadcastUserObjectsInGameByUsername(String username);
+
+    void tellPlayerIfHeIsCheater(Integer gameId);
 }

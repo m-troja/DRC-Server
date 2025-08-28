@@ -236,4 +236,18 @@ public class DefaultGameService implements GameService {
         cheaterNotificationService.updateUsersObjects(userDtos, cheaters);
         adminNotificationService.updateUsersObjects(userDtos, admins);
     }
+
+    public void tellPlayerIfHeIsCheater(Integer gameId) {
+        Game game = getGameById(gameId);
+        List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_USER), game);
+        List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_CHEATER), game);
+
+        List<User> allUsersInGame = game.getUsers();
+        List<UserDto> userDtos = userCnv.convertUsersToUserDtos(allUsersInGame);
+
+        userNotificationService.tellPlayerIfHeIsCheater((new Response(ResponseType.ARE_YOU_CHEATER, "NO")), users);
+        cheaterNotificationService.tellPlayerIfHeIsCheater((new Response(ResponseType.ARE_YOU_CHEATER, "YES")), cheaters);
+    }
+
+
 }

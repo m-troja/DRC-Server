@@ -24,6 +24,7 @@ public class DefaultUserNotificationService implements UserNotificationService {
     private static final String queueAnswersEndpoint = "/queue/all-answers";
     private static final String kickEventEndpoint = "/queue/kick";
     private static final String usersEndpoint = "/queue/users";
+    private static final String areYouCheaterEndpoint = "/queue/are-you-cheater";
 
     public void sendQuestionToAllClients(QuestionDto questionDto) {
 
@@ -60,5 +61,11 @@ public class DefaultUserNotificationService implements UserNotificationService {
             log.debug("Sent {} to {}, ws: {}", userDtos, user, usersEndpoint);
         }
     }
-
+    public void tellPlayerIfHeIsCheater(Response response,  List<User> users) {
+        log.debug("tellPlayerIfHeIsCheater: {}, {} ", response, users);
+        for (User user : users) {
+            messagingTemplate.convertAndSendToUser(user.getName(), areYouCheaterEndpoint, response);
+            log.debug("Sent {} to {}, ws: {}", response, user, areYouCheaterEndpoint);
+        }
+    }
 }

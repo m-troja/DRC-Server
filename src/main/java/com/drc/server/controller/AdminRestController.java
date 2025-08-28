@@ -131,5 +131,12 @@ public class AdminRestController {
         return new Response(ResponseType.END_ROUND_OK, "end-round of gameId " + gameId);
     }
 
+    @GetMapping("/are-you-cheater")
+    public Response areYouCheater(@RequestParam("gameId") Integer gameId) {
+        log.debug("are-you-cheater {}", gameId);
+        gameService.tellPlayerIfHeIsCheater(gameId);
+        return new Response(ResponseType.END_ROUND_OK, "end-round of gameId " + gameId);
+    }
+
 
 }

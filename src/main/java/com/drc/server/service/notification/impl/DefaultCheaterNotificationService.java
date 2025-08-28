@@ -29,6 +29,7 @@ public class DefaultCheaterNotificationService implements CheaterNotificationSer
 
     private static final String clientAllAnswersEndpoint = "/queue/all-answers"; // Sends message for specific user
     private static final String clientAnswerEndpoint = "/queue/answer";
+    private static final String areYouCheaterEndpoint = "/queue/are-you-cheater";
 
 
     public void sendAllAnswersForCheater(Game game) {
@@ -58,6 +59,14 @@ public class DefaultCheaterNotificationService implements CheaterNotificationSer
         for (User user : users) {
             messagingTemplate.convertAndSendToUser(user.getName(), usersEndpoint, userDtos);
             log.debug("Sent {} to {}, ws: {}", userDtos, user, usersEndpoint);
+        }
+    }
+
+    public void tellPlayerIfHeIsCheater(Response response,  List<User> users) {
+        log.debug("tellPlayerIfHeIsCheater: {}, {} ", response, users);
+        for (User user : users) {
+            messagingTemplate.convertAndSendToUser(user.getName(), areYouCheaterEndpoint, response);
+            log.debug("Sent {} to {}, ws: {}", response, user, areYouCheaterEndpoint);
         }
     }
 }

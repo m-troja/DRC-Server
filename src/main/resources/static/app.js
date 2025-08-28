@@ -81,6 +81,11 @@ function connect() {
 
             });
 
+        stompClient.subscribe('/user/' + from + '/queue/are-you-cheater', function (messageOutput) {
+                const answer = JSON.parse(messageOutput.body);
+                    showRequestedAnswer(answer);
+
+            });
             stompClient.subscribe('/user/' + from + '/queue/kick', function (messageOutput) {
                 try {
                     const kickPayload = JSON.parse(messageOutput.body);
