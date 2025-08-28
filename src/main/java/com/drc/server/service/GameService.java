@@ -20,10 +20,11 @@ public interface GameService {
 
     boolean allowNextQuestion(Game game);
 
-    void sendAnswerToUsers(Double value, String username);
+    void handleCorrectResponseToQuestion(Double value, String username);
 
     void triggerEndRound(Integer gameId);
 
     void shootPlayer(String username);
 
+    void broadcastUserObjectsInGameByUsername(String username);
 }

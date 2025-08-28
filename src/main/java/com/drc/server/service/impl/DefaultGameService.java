@@ -154,7 +154,7 @@ public class DefaultGameService implements GameService {
         }
     }
 
-    public void sendAnswerToUsers(Double value, String username) {
+    public void handleCorrectResponseToQuestion(Double value, String username) {
         User user = userService.getUserByname(username);
         Game game ;
         try {
@@ -176,7 +176,7 @@ public class DefaultGameService implements GameService {
         List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_USER), game);
         List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_CHEATER), game);
         List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_ADMIN), game);
-        log.debug("sendAnswerToUsers sendAnswerToUsers: {}, {}, {}, {} ", game, answer, answerDto, users);
+        log.debug("handleCorrectResponseToQuestion handleCorrectResponseToQuestion: {}, {}, {}, {} ", game, answer, answerDto, users);
         userNotificationService.sendCorrectAnswerResponseToUsers(answerDto, users);
         cheaterNotificationService.sendCorrectAnswerResponseToCheaters(answerDto, cheaters);
         adminNotificationService.sendCorrectAnswerResponseToAdmins(answerDto, admins);
@@ -208,5 +208,19 @@ public class DefaultGameService implements GameService {
         List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_ADMIN), game);
         UserDto userDto = userCnv.convertUserToUserDto(user);
         adminNotificationService.notifyAdminAboutShootPlayer(userDto, admins);
+    }
+
+    public void broadcastUserObjectsInGameByUsername(String username) {
+        Game game = getGameById(userService.getUserByname(username).getGame().getId());
+        List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_USER), game);
+        List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_CHEATER), game);
+        List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_ADMIN), game);
+
+        List<User> allUsersInGame = game.getUsers();
+        List<UserDto> userDtos = userCnv.convertUsersToUserDtos(allUsersInGame);
+
+        userNotificationService.updateUsersObjects(userDtos, users);
+        cheaterNotificationService.updateUsersObjects(userDtos, cheaters);
+        adminNotificationService.updateUsersObjects(userDtos, admins);
     }
 }

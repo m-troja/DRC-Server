@@ -14,4 +14,5 @@ public interface AdminNotificationService {
     void notifyAdminAboutShootPlayer(UserDto userDto, List<User> users);
     void sendAllAnswersForAdmin(Game game);
     void sendCorrectAnswerResponseToAdmins(CorrectAnswerResponseDto answerDto, List<User> users);
+    void updateUsersObjects(List<UserDto> userDtos, List<User> users);
 }

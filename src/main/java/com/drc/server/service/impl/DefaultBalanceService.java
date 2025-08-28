@@ -9,6 +9,7 @@ import com.drc.server.exception.BalanceValueException;
 import com.drc.server.persistence.AnswerRepo;
 import com.drc.server.service.AnswerService;
 import com.drc.server.service.BalanceService;
+import com.drc.server.service.GameService;
 import com.drc.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import java.util.List;
 public class DefaultBalanceService implements BalanceService {
 
     private final UserService userService;
+    private final GameService gameService;
 
     public Double handleActionRequest(BalanceAction action, String username, Double value) {
         log.debug("handleActionRequest actionRequest {}, username {}, value {}", action, username, value);
@@ -72,6 +74,8 @@ public class DefaultBalanceService implements BalanceService {
         log.debug("After set money {}", user);
         userService.update(user);
         log.debug("After user update: {}", user);
+
+        gameService.broadcastUserObjectsInGameByUsername(username);
         return userMoney;
     }
 
@@ -82,6 +86,4 @@ public class DefaultBalanceService implements BalanceService {
         log.debug("Increasing money of {} by {}. Result money: {}", username, value, newMoney);
 
     }
-
-
 }

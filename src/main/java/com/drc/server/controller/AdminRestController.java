@@ -118,7 +118,7 @@ public class AdminRestController {
     @GetMapping("/correct-answer-response")
     public Response processCorrectAnswerResponse(@RequestParam("value") Double value, @RequestParam("username") String username) {
         log.debug("Triggered correct answer response");
-        gameService.sendAnswerToUsers(value, username);
+        gameService.handleCorrectResponseToQuestion(value, username);
         balanceService.increaseBalanceOfUser(value, username);
         return new Response(ResponseType.PROCESSED_CORRECT_ANSWER, "value: " + value + ", username: "+ username );
     }

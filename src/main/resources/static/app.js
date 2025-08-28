@@ -70,6 +70,11 @@ function connect() {
                 showAnswers(answers);
             });
 
+            stompClient.subscribe('/user/' + from + '/queue/users', function (messageOutput) {
+                const answers = JSON.parse(messageOutput.body);
+                showAnswers(answers);
+            });
+
             stompClient.subscribe('/user/' + from + '/queue/answer', function (messageOutput) {
                 const answer = JSON.parse(messageOutput.body);
                     showRequestedAnswer(answer);
