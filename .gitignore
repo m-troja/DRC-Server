@@ -5,7 +5,7 @@ target/
 !**/src/test/**/target/
 src/main/resources/secrets.properties
 prod.env
-
+release.properties
 ### STS ###
 .apt_generated
 .classpath
