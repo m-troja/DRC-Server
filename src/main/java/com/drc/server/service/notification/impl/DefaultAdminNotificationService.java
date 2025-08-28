@@ -30,6 +30,7 @@ public class DefaultAdminNotificationService implements AdminNotificationService
     private static final String clientAllAnswersEndpoint = "/queue/all-answers"; // Sends message for specific user
     private static final String adminEventEndpoint = "/queue/admin-event";
     private static final String clientAnswerEndpoint = "/queue/answer";
+    private static final String usersEndpoint = "/queue/users";
 
     public void sendAllAnswersForAdmin(Game game) {
         List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_ADMIN), game);
@@ -83,11 +84,19 @@ public class DefaultAdminNotificationService implements AdminNotificationService
         }
     }
 
-    public void notifyAdminAboutShootPlayer(UserDto userDto, List<User> admins) {
-        log.debug("notifyAdminAboutShootPlayer: {}, {} ", userDto);
+    public void notifyAdminAboutShootPlayer(UserDto userDto, List<User> admins, boolean wasCheater) {
+        log.debug("notifyAdminAboutShootPlayer: {}, {}, wasCheater {} ", userDto, admins, wasCheater);
         for (User admin : admins) {
-            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, new ShootPlayerNotification(ResponseType.SHOOT_PLAYER, userDto) );
+            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, new ShootPlayerNotification(ResponseType.SHOOT_PLAYER, userDto, wasCheater) );
             log.debug("Sent {} to {}, ws: {}", userDto, admin, adminEventEndpoint);
+        }
+    }
+
+    public void updateUsersObjects(List<UserDto> userDtos, List<User> users) {
+        log.debug("updateUsersObjects: {}, {} ", userDtos, users);
+        for (User user : users) {
+            messagingTemplate.convertAndSendToUser(user.getName(), usersEndpoint, userDtos);
+            log.debug("Sent {} to {}, ws: {}", userDtos, user, usersEndpoint);
         }
     }
 }

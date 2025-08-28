@@ -70,12 +70,22 @@ function connect() {
                 showAnswers(answers);
             });
 
+            stompClient.subscribe('/user/' + from + '/queue/users', function (messageOutput) {
+                const answers = JSON.parse(messageOutput.body);
+                showAnswers(answers);
+            });
+
             stompClient.subscribe('/user/' + from + '/queue/answer', function (messageOutput) {
                 const answer = JSON.parse(messageOutput.body);
                     showRequestedAnswer(answer);
 
             });
 
+        stompClient.subscribe('/user/' + from + '/queue/are-you-cheater', function (messageOutput) {
+                const answer = JSON.parse(messageOutput.body);
+                    showRequestedAnswer(answer);
+
+            });
             stompClient.subscribe('/user/' + from + '/queue/kick', function (messageOutput) {
                 try {
                     const kickPayload = JSON.parse(messageOutput.body);

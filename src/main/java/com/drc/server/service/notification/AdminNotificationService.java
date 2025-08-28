@@ -11,7 +11,8 @@ public interface AdminNotificationService {
 
     void notifyAdminThatNewUserConnected(User user);
     void notifyAdminThatUserDisconnected(Integer userId);
-    void notifyAdminAboutShootPlayer(UserDto userDto, List<User> users);
+    void notifyAdminAboutShootPlayer(UserDto userDto, List<User> users, boolean wasCheater);
     void sendAllAnswersForAdmin(Game game);
     void sendCorrectAnswerResponseToAdmins(CorrectAnswerResponseDto answerDto, List<User> users);
+    void updateUsersObjects(List<UserDto> userDtos, List<User> users);
 }

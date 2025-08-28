@@ -2,6 +2,7 @@ package com.drc.server.service.notification.impl;
 
 import com.drc.server.dto.AnswerDto;
 import com.drc.server.dto.CorrectAnswerResponseDto;
+import com.drc.server.dto.UserDto;
 import com.drc.server.dto.cnv.AnswerCnv;
 import com.drc.server.entity.*;
 import com.drc.server.service.*;
@@ -24,9 +25,11 @@ public class DefaultCheaterNotificationService implements CheaterNotificationSer
     private final AnswerCnv answerCnv;
     private final UserService userService;
     private final RoleService roleService;
+    private static final String usersEndpoint = "/queue/users";
 
     private static final String clientAllAnswersEndpoint = "/queue/all-answers"; // Sends message for specific user
     private static final String clientAnswerEndpoint = "/queue/answer";
+    private static final String areYouCheaterEndpoint = "/queue/are-you-cheater";
 
 
     public void sendAllAnswersForCheater(Game game) {
@@ -48,6 +51,22 @@ public class DefaultCheaterNotificationService implements CheaterNotificationSer
         for (User user : users) {
             messagingTemplate.convertAndSendToUser(user.getName(), clientAnswerEndpoint, answerDto);
             log.debug("Sent {} to {}, ws: {}", answerDto, user, clientAnswerEndpoint);
+        }
+    }
+
+    public void updateUsersObjects(List<UserDto> userDtos, List<User> users) {
+        log.debug("updateUsersObjects: {}, {} ", userDtos, users);
+        for (User user : users) {
+            messagingTemplate.convertAndSendToUser(user.getName(), usersEndpoint, userDtos);
+            log.debug("Sent {} to {}, ws: {}", userDtos, user, usersEndpoint);
+        }
+    }
+
+    public void tellPlayerIfHeIsCheater(Response response,  List<User> users) {
+        log.debug("tellPlayerIfHeIsCheater: {}, {} ", response, users);
+        for (User user : users) {
+            messagingTemplate.convertAndSendToUser(user.getName(), areYouCheaterEndpoint, response);
+            log.debug("Sent {} to {}, ws: {}", response, user, areYouCheaterEndpoint);
         }
     }
 }

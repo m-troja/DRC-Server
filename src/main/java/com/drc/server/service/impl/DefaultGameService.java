@@ -18,6 +18,7 @@ import com.drc.server.service.notification.CheaterNotificationService;
 import com.drc.server.service.notification.UserNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,6 +36,8 @@ public class DefaultGameService implements GameService {
     private final UserService userService;
     private final RoleService roleService;
     private final AnswerService answerService;
+    @Lazy
+    private final BalanceService balanceService;
     private final GameRepo gameRepo;
     private final GameEventPublisher gameEventPublisher;
     private final AnswerCnv answerCnv;
@@ -154,7 +157,7 @@ public class DefaultGameService implements GameService {
         }
     }
 
-    public void sendAnswerToUsers(Double value, String username) {
+    public void handleCorrectResponseToQuestion(Double value, String username) {
         User user = userService.getUserByname(username);
         Game game ;
         try {
@@ -176,7 +179,7 @@ public class DefaultGameService implements GameService {
         List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_USER), game);
         List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_CHEATER), game);
         List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_ADMIN), game);
-        log.debug("sendAnswerToUsers sendAnswerToUsers: {}, {}, {}, {} ", game, answer, answerDto, users);
+        log.debug("handleCorrectResponseToQuestion handleCorrectResponseToQuestion: {}, {}, {}, {} ", game, answer, answerDto, users);
         userNotificationService.sendCorrectAnswerResponseToUsers(answerDto, users);
         cheaterNotificationService.sendCorrectAnswerResponseToCheaters(answerDto, cheaters);
         adminNotificationService.sendCorrectAnswerResponseToAdmins(answerDto, admins);
@@ -205,8 +208,46 @@ public class DefaultGameService implements GameService {
         } catch (Exception e) {
             throw new GameNotFoundException("Game not found for user " + username);
         }
+
+        List<User> allUsersInGame = game.getUsers();
+
+        boolean wasCheater = user.getRole() == roleService.getRoleByName(ROLE_CHEATER);
+        if (!wasCheater) {
+            balanceService.handleActionRequestOfMultipleUsers(BalanceAction.DIVIDE, allUsersInGame, 2.0);
+        }
+
         List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_ADMIN), game);
         UserDto userDto = userCnv.convertUserToUserDto(user);
-        adminNotificationService.notifyAdminAboutShootPlayer(userDto, admins);
+        adminNotificationService.notifyAdminAboutShootPlayer(userDto, admins, wasCheater);
+
+        broadcastUserObjectsInGameByUsername(username);
     }
+
+    public void broadcastUserObjectsInGameByUsername(String username) {
+        Game game = getGameById(userService.getUserByname(username).getGame().getId());
+        List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_USER), game);
+        List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_CHEATER), game);
+        List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_ADMIN), game);
+
+        List<User> allUsersInGame = game.getUsers();
+        List<UserDto> userDtos = userCnv.convertUsersToUserDtos(allUsersInGame);
+
+        userNotificationService.updateUsersObjects(userDtos, users);
+        cheaterNotificationService.updateUsersObjects(userDtos, cheaters);
+        adminNotificationService.updateUsersObjects(userDtos, admins);
+    }
+
+    public void tellPlayerIfHeIsCheater(Integer gameId) {
+        Game game = getGameById(gameId);
+        List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_USER), game);
+        List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_CHEATER), game);
+
+        List<User> allUsersInGame = game.getUsers();
+        List<UserDto> userDtos = userCnv.convertUsersToUserDtos(allUsersInGame);
+
+        userNotificationService.tellPlayerIfHeIsCheater((new Response(ResponseType.ARE_YOU_CHEATER, "NO")), users);
+        cheaterNotificationService.tellPlayerIfHeIsCheater((new Response(ResponseType.ARE_YOU_CHEATER, "YES")), cheaters);
+    }
+
+
 }

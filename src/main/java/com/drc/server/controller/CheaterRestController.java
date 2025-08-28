@@ -22,6 +22,7 @@ public class CheaterRestController {
     public Response shootPlayer(@RequestParam("username") String username) {
         log.debug("Cheater has shoot {} :(", username);
         gameService.shootPlayer(username);
+        gameService.broadcastUserObjectsInGameByUsername(username);
         return new Response(ResponseType.SHOOT_PLAYER, "Cheater has shoot " + username);
     }
 }

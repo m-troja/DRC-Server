@@ -118,8 +118,9 @@ public class AdminRestController {
     @GetMapping("/correct-answer-response")
     public Response processCorrectAnswerResponse(@RequestParam("value") Double value, @RequestParam("username") String username) {
         log.debug("Triggered correct answer response");
-        gameService.sendAnswerToUsers(value, username);
+        gameService.handleCorrectResponseToQuestion(value, username);
         balanceService.increaseBalanceOfUser(value, username);
+        gameService.broadcastUserObjectsInGameByUsername(username);
         return new Response(ResponseType.PROCESSED_CORRECT_ANSWER, "value: " + value + ", username: "+ username );
     }
 
@@ -129,4 +130,13 @@ public class AdminRestController {
         gameService.triggerEndRound(gameId);
         return new Response(ResponseType.END_ROUND_OK, "end-round of gameId " + gameId);
     }
+
+    @GetMapping("/are-you-cheater")
+    public Response areYouCheater(@RequestParam("gameId") Integer gameId) {
+        log.debug("are-you-cheater {}", gameId);
+        gameService.tellPlayerIfHeIsCheater(gameId);
+        return new Response(ResponseType.END_ROUND_OK, "end-round of gameId " + gameId);
+    }
+
+
 }
