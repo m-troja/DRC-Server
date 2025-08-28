@@ -84,10 +84,10 @@ public class DefaultAdminNotificationService implements AdminNotificationService
         }
     }
 
-    public void notifyAdminAboutShootPlayer(UserDto userDto, List<User> admins) {
-        log.debug("notifyAdminAboutShootPlayer: {}, {} ", userDto);
+    public void notifyAdminAboutShootPlayer(UserDto userDto, List<User> admins, boolean wasCheater) {
+        log.debug("notifyAdminAboutShootPlayer: {}, {}, wasCheater {} ", userDto, admins, wasCheater);
         for (User admin : admins) {
-            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, new ShootPlayerNotification(ResponseType.SHOOT_PLAYER, userDto) );
+            messagingTemplate.convertAndSendToUser(admin.getName(), adminEventEndpoint, new ShootPlayerNotification(ResponseType.SHOOT_PLAYER, userDto, wasCheater) );
             log.debug("Sent {} to {}, ws: {}", userDto, admin, adminEventEndpoint);
         }
     }

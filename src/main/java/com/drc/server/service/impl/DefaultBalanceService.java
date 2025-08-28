@@ -1,18 +1,16 @@
 package com.drc.server.service.impl;
 
-import com.drc.server.entity.Answer;
 import com.drc.server.entity.BalanceAction;
 import com.drc.server.entity.User;
 import com.drc.server.exception.BalanceActionException;
 import com.drc.server.exception.BalanceUsernameException;
 import com.drc.server.exception.BalanceValueException;
-import com.drc.server.persistence.AnswerRepo;
-import com.drc.server.service.AnswerService;
 import com.drc.server.service.BalanceService;
 import com.drc.server.service.GameService;
 import com.drc.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,10 +21,9 @@ import java.util.List;
 public class DefaultBalanceService implements BalanceService {
 
     private final UserService userService;
-    private final GameService gameService;
 
-    public Double handleActionRequest(BalanceAction action, String username, Double value) {
-        log.debug("handleActionRequest actionRequest {}, username {}, value {}", action, username, value);
+    public Double handleActionRequestForSingleUser(BalanceAction action, String username, Double value) {
+        log.debug("handleActionRequestForSingleUser actionRequest {}, username {}, value {}", action, username, value);
 
         if (value < 0 || value > Double.MAX_VALUE) {
             throw new BalanceValueException("Value out of allowed range: " + value);
@@ -74,16 +71,20 @@ public class DefaultBalanceService implements BalanceService {
         log.debug("After set money {}", user);
         userService.update(user);
         log.debug("After user update: {}", user);
-
-        gameService.broadcastUserObjectsInGameByUsername(username);
         return userMoney;
     }
+
 
     public void increaseBalanceOfUser(Double value, String username) {
         User user = userService.getUserByname(username);
         Double currentMoney = user.getMoney();
-        Double newMoney = handleActionRequest(BalanceAction.INCREASE, username, value);
+        Double newMoney = handleActionRequestForSingleUser(BalanceAction.INCREASE, username, value);
         log.debug("Increasing money of {} by {}. Result money: {}", username, value, newMoney);
+    }
 
+    public void handleActionRequestOfMultipleUsers(BalanceAction action, List<User> users, Double value) {
+        for (User user : users) {
+            Double x = handleActionRequestForSingleUser(action, user.getName(), value);
+        }
     }
 }

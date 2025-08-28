@@ -24,7 +24,7 @@ public class BalanceRestController {
                               @RequestParam("value") Double value) {
         log.debug("Action {}, username {}, value {}", action, username, value);
 
-        Double money = balanceService.handleActionRequest(action, username, value);
+        Double money = balanceService.handleActionRequestForSingleUser(action, username, value);
 
         return new Response(ResponseType.BALANCE_ACTION_OK,"Money of user '" + username + "' = " + money);
     }

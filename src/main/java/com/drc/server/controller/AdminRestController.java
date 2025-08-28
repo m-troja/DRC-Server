@@ -120,6 +120,7 @@ public class AdminRestController {
         log.debug("Triggered correct answer response");
         gameService.handleCorrectResponseToQuestion(value, username);
         balanceService.increaseBalanceOfUser(value, username);
+        gameService.broadcastUserObjectsInGameByUsername(username);
         return new Response(ResponseType.PROCESSED_CORRECT_ANSWER, "value: " + value + ", username: "+ username );
     }
 
@@ -129,4 +130,6 @@ public class AdminRestController {
         gameService.triggerEndRound(gameId);
         return new Response(ResponseType.END_ROUND_OK, "end-round of gameId " + gameId);
     }
+
+
 }
