@@ -4,6 +4,7 @@ import com.drc.server.entity.BalanceAction;
 import com.drc.server.entity.Response;
 import com.drc.server.entity.ResponseType;
 import com.drc.server.service.BalanceService;
+import com.drc.server.service.GameService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class BalanceRestController {
 
     private final BalanceService balanceService;
+    private final GameService gameService;
 
     @GetMapping("/balance")
     public Response doAccount(@RequestParam("action") BalanceAction action, @RequestParam("username") String username,
@@ -25,7 +27,7 @@ public class BalanceRestController {
         log.debug("Action {}, username {}, value {}", action, username, value);
 
         Double money = balanceService.handleActionRequestForSingleUser(action, username, value);
-
+        gameService.broadcastUserObjectsInGameByUsername(username);
         return new Response(ResponseType.BALANCE_ACTION_OK,"Money of user '" + username + "' = " + money);
     }
 }

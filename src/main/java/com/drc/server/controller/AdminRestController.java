@@ -98,7 +98,14 @@ public class AdminRestController {
         }
         webSocketSessionRegistry.unregister(user.getId());
         userNotificationService.sendKickRequest(new KickRequest(RequestType.COMMAND_DISCONNECT, name));
-        return new Response(ResponseType.PLAYER_KICKED, name);
+        boolean canGameBeContinued = gameService.checkIfGameMayBeContinued(user.getGame().getId());
+        log.debug("canGameBeContinued: {}", canGameBeContinued);
+        if (canGameBeContinued) {
+            return new Response(ResponseType.PLAYER_KICKED, name);
+        }
+        else {
+            return new Response(ResponseType.GAME_END, "No more users in game");
+        }
     }
 
     @GetMapping("/clean-server")
@@ -133,10 +140,8 @@ public class AdminRestController {
 
     @GetMapping("/are-you-cheater")
     public Response areYouCheater(@RequestParam("gameId") Integer gameId) {
-        log.debug("are-you-cheater {}", gameId);
+        log.debug("are-you-cheater gameId {}", gameId);
         gameService.tellPlayerIfHeIsCheater(gameId);
-        return new Response(ResponseType.END_ROUND_OK, "end-round of gameId " + gameId);
+        return new Response(ResponseType.ARE_YOU_CHEATER, "Response sent to users");
     }
-
-
 }

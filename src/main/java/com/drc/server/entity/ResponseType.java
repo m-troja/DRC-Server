@@ -14,5 +14,6 @@ public enum ResponseType {
     PROCESSED_CORRECT_ANSWER,
     END_ROUND_OK,
     SHOOT_PLAYER,
-    ARE_YOU_CHEATER
+    ARE_YOU_CHEATER,
+    GAME_END
 }
