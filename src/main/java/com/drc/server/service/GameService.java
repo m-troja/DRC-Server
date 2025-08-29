@@ -29,4 +29,8 @@ public interface GameService {
     void broadcastUserObjectsInGameByUsername(String username);
 
     void tellPlayerIfHeIsCheater(Integer gameId);
+
+    boolean checkIfCheaterIsInGame(Integer gameId);
+    boolean checkIfGameMayBeContinued(Integer gameId);
+
 }

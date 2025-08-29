@@ -36,7 +36,6 @@ public class DefaultGameService implements GameService {
     private final UserService userService;
     private final RoleService roleService;
     private final AnswerService answerService;
-    @Lazy
     private final BalanceService balanceService;
     private final GameRepo gameRepo;
     private final GameEventPublisher gameEventPublisher;
@@ -86,17 +85,12 @@ public class DefaultGameService implements GameService {
     }
 
     public String setCheaterByServer(Integer gameId) {
-        Game game = getGameById(gameId);
-        List<User> allUsersInGame = userService.getUsersByGame(game);
 
-        // Check if cheater already in game
-        for (User userInGame : allUsersInGame) {
-            if (userInGame.getRole().equals(roleService.getRoleByName(RoleService.ROLE_CHEATER))) {
-                log.debug("Cheater is already in the game: {}", userInGame);
-                throw new SetCheaterException("Cheater is already in the game: " + userInGame);
-            }
+        if (checkIfCheaterIsInGame(gameId)) {
+            throw new SetCheaterException("Cheater is already in the game: " + gameId);
         }
 
+        Game game = getGameById(gameId);
         List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(RoleService.ROLE_USER), game);
         User cheater;
         if (!users.isEmpty()) {
@@ -192,6 +186,7 @@ public class DefaultGameService implements GameService {
         List<Answer> answers = answerService.getAnswersForQuestionId(questionId);
         List<AnswerDto> answerDtos = answerCnv.convertAnswersToAnswerDtos(answers);
         userNotificationService.sendAllAnswersToUsersInGame(answerDtos, users);
+        endGame(gameId);
         log.debug("Data to end-round: {}, {}, {}, {}", game,users, answers, answerDtos);
     }
 
@@ -224,7 +219,12 @@ public class DefaultGameService implements GameService {
     }
 
     public void broadcastUserObjectsInGameByUsername(String username) {
-        Game game = getGameById(userService.getUserByname(username).getGame().getId());
+        Game game = null;
+        try {
+            game = getGameById(userService.getUserByname(username).getGame().getId());
+        } catch (Exception e) {
+            throw new GameNotFoundException("Game not found for user " + username);
+        }
         List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_USER), game);
         List<User> cheaters = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_CHEATER), game);
         List<User> admins = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_ADMIN), game);
@@ -249,5 +249,39 @@ public class DefaultGameService implements GameService {
         cheaterNotificationService.tellPlayerIfHeIsCheater((new Response(ResponseType.ARE_YOU_CHEATER, "YES")), cheaters);
     }
 
+    public boolean checkIfCheaterIsInGame(Integer gameId) {
+        Game game = getGameById(gameId);
+        List<User> allUsersInGame = userService.getUsersByGame(game);
 
+        // Check if cheater already in game
+        for (User userInGame : allUsersInGame) {
+            if (userInGame.getRole().equals(roleService.getRoleByName(RoleService.ROLE_CHEATER))) {
+                log.debug("Cheater is already in the game: {}", userInGame);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean checkIfGameMayBeContinued(Integer gameId) {
+        Game game = getGameById(gameId);
+        List<User> users = userService.getUsersByRoleAndGame(roleService.getRoleByName(ROLE_USER), game);
+        Integer usersSize = users.size();
+
+        // Is there a new question
+        boolean reachedMaxQuestion = game.getCurrentQuestionId() == game.getMaxQuestion();
+
+        if (usersSize == 0 || reachedMaxQuestion) {
+            endGame(gameId);
+            return false;
+        }
+        return true;
+    }
+
+    private void endGame(Integer gameId) {
+        Game game = getGameById(gameId);
+        game.setGameStatus(GameStatus.END);
+        save(game);
+        log.debug("endGame: {}", game);
+    }
 }
